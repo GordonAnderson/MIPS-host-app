@@ -114,8 +114,8 @@ ControlPanel::ControlPanel(QWidget *parent, QString CPfileName, QList<Comms*> S,
     IFT       = NULL;
     DCBgroups = NULL;
     statusBar = NULL;
-    ARBcompressorButton = NULL;
-    comp      = NULL;
+    ARBcompressorButton.clear();
+    comp.clear();
     TC.clear();
     TextLabels.clear();
     RFchans.clear();
@@ -255,6 +255,17 @@ ControlPanel::ControlPanel(QWidget *parent, QString CPfileName, QList<Comms*> S,
                 Ccontrols.last()->comms = FindCommPort(resList[2],Systems);
                 Ccontrols.last()->Show();
             }
+            if(resList[0].toUpper() == "COMBOBOXLIST")
+            {
+                QString list;
+                list.clear();
+                for(int i=1;i<resList.count();i++)
+                {
+                    if(i>1) list += ",";
+                    list += resList[i];
+                }
+                Ccontrols.last()->SetList(list);
+            }
             if((resList[0].toUpper() == "DCBCHANNEL") && (resList.length()==6))
             {
                 DCBchans.append(new DCBchannel(Container,resList[1],resList[2],resList[4].toInt(),resList[5].toInt()));
@@ -311,6 +322,11 @@ ControlPanel::ControlPanel(QWidget *parent, QString CPfileName, QList<Comms*> S,
                 ScripButtons.append(new ScriptButton(Container, resList[1], resList[2], resList[3].toInt(), resList[4].toInt(), properties, statusBar));
                 ScripButtons.last()->Show();
             }
+            if((resList[0].toUpper() == "CALLONUPDATE") && (resList.length()==2))
+            {
+               if(ScripButtons.count() >= 1)
+                  if(resList[0].toUpper().trimmed() == "TRUE") ScripButtons.last()->CallOnUpdate = true;
+            }
             // GroupBox,name,width,hieght,X,Y  // Command to start group
             // GroupBoxEnd                     // Signals end of group box
             if((resList[0].toUpper() == "GROUPBOX") && (resList.length()==6))
@@ -324,17 +340,11 @@ ControlPanel::ControlPanel(QWidget *parent, QString CPfileName, QList<Comms*> S,
             if(resList[0].toUpper() == "GROUPBOXEND") Container = ui->lblBackground;
             if((resList[0].toUpper() == "TIMING") && (resList.length()==5))
             {
-//                TC = new TimingControl(Container,resList[1],resList[2],resList[3].toInt(),resList[4].toInt());
                 TC.append(new TimingControl(Container,resList[1],resList[2],resList[3].toInt(),resList[4].toInt()));
                 TC.last()->comms = FindCommPort(resList[2],Systems);
                 TC.last()->statusBar = statusBar;
                 TC.last()->properties = properties;
                 TC.last()->Show();
-//                if(TC.last()->TG != NULL)
-//                {
-//                   foreach(DCBchannel *dcb, DCBchans) if(dcb->MIPSnm == TC.last()->MIPSnm) TC.last()->TG->AddSignal(dcb->Title, QString::number(dcb->Channel));
-//                   foreach(DIOchannel *dio, DIOchannels) if(dio->MIPSnm == TC.last()->MIPSnm) TC.last()->TG->AddSignal(dio->Title, dio->Channel);
-//                }
                 connect(TC.last(),SIGNAL(dataAcquired(QString)),this,SLOT(slotDataAcquired(QString)));
             }
             if((resList[0].toUpper() == "EVENTCONTROL") && (resList.length()==5))
@@ -388,13 +398,13 @@ ControlPanel::ControlPanel(QWidget *parent, QString CPfileName, QList<Comms*> S,
             if((resList[0].toUpper() == "COMPRESSOR") && (resList.length()==5))
             {
                 // Enable the ARB compressor button
-                ARBcompressorButton = new QPushButton(resList[1],Container);
-                ARBcompressorButton->setGeometry(resList[3].toInt(),resList[4].toInt(),150,32);
-                ARBcompressorButton->setAutoDefault(false);
-                ARBcompressorButton->setToolTip("Press this button to edit the compression options");
-                comp = new Compressor(Container,resList[1],resList[2]);
-                comp->comms = FindCommPort(resList[2],Systems);
-                connect(ARBcompressorButton,SIGNAL(pressed()),this,SLOT(pbARBcompressor()));
+                ARBcompressorButton.append(new QPushButton(resList[1],Container));
+                ARBcompressorButton.last()->setGeometry(resList[3].toInt(),resList[4].toInt(),150,32);
+                ARBcompressorButton.last()->setAutoDefault(false);
+                ARBcompressorButton.last()->setToolTip("Press this button to edit the compression options");
+                comp.append(new Compressor(Container,resList[1],resList[2]));
+                comp.last()->comms = FindCommPort(resList[2],Systems);
+                connect(ARBcompressorButton.last(),SIGNAL(pressed()),this,SLOT(pbARBcompressor()));
             }
             if((resList[0].toUpper() == "MIPSCOMMS") && (resList.length()==3))
             {
@@ -446,6 +456,11 @@ ControlPanel::ControlPanel(QWidget *parent, QString CPfileName, QList<Comms*> S,
                 if(resList[1].startsWith("~")) resList[1] = QDir::homePath() + "/" + resList[1].mid(2);
                 #endif
                 InitMIPSsystems(resList[1]);
+            }
+            if((resList[0].toUpper() == "SENDCOMMAND") && (resList.length()>2))
+            {
+                // Send a command to the selected MIPS system
+                SendCommand(resList[1],line.mid(line.indexOf(resList[1]) + resList[1].count() + 1) + "\n");
             }
             if((resList[0].toUpper() == "HELP") && (resList.length()==2))
             {
@@ -717,6 +732,7 @@ void ControlPanel::Update(void)
    QMessageBox msgBox;
    int i,j,k;
 
+   if(tcp != NULL) if(tcp->bytesAvailable() > 0) tcp->readData();
    QApplication::processEvents();
    if(scriptconsole!=NULL) scriptconsole->UpdateStatus();
    if(UpdateStop) return;
@@ -815,6 +831,8 @@ void ControlPanel::Update(void)
        }
        else reject();
    }
+
+   for(i=0;i<ScripButtons.count();i++) {ScripButtons[i]->Update(); if(ProcessEvents) QApplication::processEvents();}
    // For each MIPS system present if there are RF channels for the selected
    // MIPS system then read all values using the read all commands to speed up the process.
    for(i=0;i<Systems.count();i++)
@@ -930,7 +948,7 @@ void ControlPanel::Update(void)
    for(i=0;i<devices.count();i++)          {devices[i]->Update();}
    for(i=0;i<Cpanels.count();i++)          Cpanels[i]->Update();
    for(i=0;i<TC.count();i++)               for(j=0;j<TC[i]->TG->EC.count();j++) TC[i]->TG->EC[j]->Update();
-   if(comp!=NULL)                          {comp->Update();        if(ProcessEvents) QApplication::processEvents();}
+   for(i=0;i<comp.count();i++)             {comp[i]->Update();     if(ProcessEvents) QApplication::processEvents();}
    RequestUpdate = false;
    LogDataFile();
 }
@@ -1017,10 +1035,10 @@ QString ControlPanel::Save(QString Filename)
             stream << "Custom control channels," + QString::number(Ccontrols.count()) + "\n";
             for(int i=0; i<Ccontrols.count(); i++) stream << Ccontrols[i]->Report() + "\n";
         }
-        if(comp != NULL)
+        if(comp.count() > 0)
         {
             stream << "Compression parameters\n";
-            stream << comp->Report() + "\n";
+            for(int i=0; i<comp.count(); i++) stream << comp[i]->Report() + "\n";
             stream << "CompressionEnd\n";
         }
         if(rfa.count() > 0)
@@ -1187,7 +1205,7 @@ QString ControlPanel::Load(QString Filename)
                         line = stream.readLine();
                         if(line.isNull()) break;
                         if(line.contains("CompressionEnd")) break;
-                        comp->SetValues(line);
+                        for(int i=0;i<comp.count();i++) comp[i]->SetValues(line);
                     }
                 }
             }
@@ -1259,9 +1277,17 @@ void ControlPanel::pbMIPScomms(void)
 
 void ControlPanel::pbARBcompressor(void)
 {
-    ARBcompressorButton->setDown(false);
-    comp->show();
-    comp->raise();
+    QObject*    obj = sender();
+
+    for(int i=0; i<ARBcompressorButton.count();i++)
+    {
+        if((QPushButton *)obj == ARBcompressorButton[i])
+        {
+            ARBcompressorButton[i]->setDown(false);
+            comp[i]->show();
+            comp[i]->raise();
+        }
+    }
 }
 
 void ControlPanel::scriptShutdown(void)
@@ -1455,6 +1481,7 @@ void ControlPanel::tcpCommand(void)
 {
     QString cmd = tcp->readLine();
     tcp->sendMessage(Command(cmd));
+    if(tcp->bytesAvailable() > 0) tcp->readData();
 }
 
 // This function is called by the TCPserver code to process commands and
@@ -1537,7 +1564,7 @@ QString ControlPanel::Command(QString cmd)
        if((res = TC[i]->TG->ProcessCommand(cmd)) != "?") return(res + "\n");
        for(j=0;j<TC[i]->TG->EC.count();j++) if((res = TC[i]->TG->EC[j]->ProcessCommand(cmd)) != "?") return(res + "\n");
    }
-   if(comp != NULL) if((res = comp->ProcessCommand(cmd)) != "?") return(res + "\n");
+   for(i=0;i<comp.count();i++) if((res = comp[i]->ProcessCommand(cmd)) != "?") return(res + "\n");
    return("?\n");
 }
 
@@ -1713,6 +1740,9 @@ DACchannel::DACchannel(QWidget *parent, QString name, QString MIPSname, int x, i
     m = 1;
     b = 0;
     Format = "%.3f";
+    Updating = false;
+    UpdateOff = false;
+    qApp->installEventFilter(this);
 }
 
 void DACchannel::Show(void)
@@ -1723,6 +1753,36 @@ void DACchannel::Show(void)
     labels[1] = new QLabel(Units,frmDAC); labels[1]->setGeometry(150,0,31,16);
     Vdac->setToolTip("DAC output CH" +  QString::number(Channel) + ", "  + MIPSnm);
     connect(Vdac,SIGNAL(editingFinished()),this,SLOT(VdacChange()));
+}
+
+bool DACchannel::eventFilter(QObject *obj, QEvent *event)
+{
+    float delta = 0;
+
+    if ((obj == Vdac) && (event->type() == QEvent::KeyPress))
+    {
+        if(Updating) return true;
+        UpdateOff = true;
+        QKeyEvent *key = static_cast<QKeyEvent *>(event);
+        if(key->key() == 16777235) delta = 0.1;
+        if(key->key() == 16777237) delta = -0.1;
+        if(Format.contains(".0")) delta *= 10;
+        if(Format.contains(".3")) delta /= 10;
+        if((QApplication::queryKeyboardModifiers() & 0x2000000) != 0) delta *= 10;
+        if((QApplication::queryKeyboardModifiers() & 0x8000000) != 0) delta *= 100;
+        if(delta != 0)
+        {
+           QString myString;
+           myString.sprintf((const char*)Format.toStdString().c_str(), Vdac->text().toFloat() + delta);
+           Vdac->setText(myString);
+           Vdac->setModified(true);
+           Vdac->editingFinished();
+           UpdateOff = false;
+           return true;
+        }
+    }
+    UpdateOff = false;
+    return QObject::eventFilter(obj, event);
 }
 
 QString DACchannel::Report(void)
@@ -1782,12 +1842,19 @@ void DACchannel::Update(void)
     QString res;
 
     if(comms == NULL) return;
+    if(UpdateOff) return;
+    Updating = true;
     comms->rb.clear();
     res = "GDACV,CH"  + QString::number(Channel) + "\n";
     res = comms->SendMess(res);
-    if(res == "") return;
+    if(res == "")
+    {
+        Updating = false;
+        return;
+    }
     res.sprintf(Format.toStdString().c_str(),res.toFloat() * m + b);
     if(!Vdac->hasFocus()) Vdac->setText(res);
+    Updating = false;
 }
 
 // writeValue = (display - b)/m
@@ -2067,7 +2134,7 @@ void ESI::Restore(void)
 // **********************************************************************************************
 //  Implements a generic control with the following features:
 //      - TYPE, defines the control type
-//              - LineEdit, CheckBox, Button
+//              - LineEdit, CheckBox, Button, ComboBox
 //      - Set command
 //              to set the MIPS value from LineEdit box
 //              checked state command for the CheckBox
@@ -2081,7 +2148,7 @@ void ESI::Restore(void)
 //              if CheckBox has read command then format is COMMAND_CHK_UNCHK
 //              not used for Button
 //  Syntax example:
-//      Ccontrol,name,mips name,type,set command,get command,readback command,units,X,Y
+//      Ccontrol,name,mips name,type,get command,set command,readback command,units,X,Y
 
 Ccontrol::Ccontrol(QWidget *parent, QString name, QString MIPSname,QString Type, QString Gcmd, QString Scmd, QString RBcmd, QString Units, int x, int y)
 {
@@ -2101,6 +2168,7 @@ Ccontrol::Ccontrol(QWidget *parent, QString name, QString MIPSname,QString Type,
     UpdateOff  = false;
     ShutdownValue.clear();
     Dtype = "Double";
+    comboBox = NULL;
 //    qApp->installEventFilter(this);
 }
 
@@ -2112,11 +2180,11 @@ void Ccontrol::Show(void)
         labels[0] = new QLabel(Title,frmCc); labels[0]->setGeometry(0,0,59,16);
         labels[1] = new QLabel(UnitsText,frmCc);
         // If Read back command or set command are empty then its only one lineEdit
-        // boxe, else two.
+        // box, else two.
         if(SetCmd.isEmpty() || ReadbackCmd.isEmpty())
         {
             // Only 1 line edit box
-            frmCc->setGeometry(X,Y,171,21);
+            frmCc->setGeometry(X,Y,175,21);
             if(SetCmd.isEmpty())
             {
                 Vrb = new QLineEdit(frmCc);
@@ -2131,14 +2199,14 @@ void Ccontrol::Show(void)
                 Vsp->setToolTip(MIPSnm + "," + SetCmd);
                 connect(Vsp,SIGNAL(editingFinished()),this,SLOT(VspChange()));
             }
-            labels[1]->setGeometry(150,0,21,16);
+            labels[1]->setGeometry(150,0,30,16);
         }
         else
         {
-            frmCc->setGeometry(X,Y,241,21);
+            frmCc->setGeometry(X,Y,245,21);
             Vsp = new QLineEdit(frmCc); Vsp->setGeometry(70,0,70,21); //Vsp->setValidator(new QDoubleValidator);
             Vrb = new QLineEdit(frmCc); Vrb->setGeometry(140,0,70,21); Vrb->setReadOnly(true);
-            labels[1]->setGeometry(220,0,21,16);
+            labels[1]->setGeometry(220,0,30,16);
             Vsp->setToolTip(MIPSnm + "," + SetCmd);
             connect(Vsp,SIGNAL(editingFinished()),this,SLOT(VspChange()));
         }
@@ -2156,6 +2224,14 @@ void Ccontrol::Show(void)
         pbButton->setGeometry(X,Y,150,32);
         pbButton->setAutoDefault(false);
         connect(pbButton,SIGNAL(pressed()),this,SLOT(pbButtonPressed()));
+    }
+    if(Ctype == "ComboBox")
+    {
+        frmCc = new QFrame(p); frmCc->setGeometry(X,Y,241,21);
+        labels[0] = new QLabel(Title,frmCc); labels[0]->setGeometry(0,0,59,16);
+        comboBox = new QComboBox(frmCc); comboBox->setGeometry(70,0,70,21);
+        labels[1] = new QLabel(UnitsText,frmCc); labels[1]->setGeometry(150,0,30,16);
+        connect(comboBox,SIGNAL(currentIndexChanged(QString)),this,SLOT(comboBoxChanged(QString)));
     }
 }
 
@@ -2198,6 +2274,17 @@ void Ccontrol::Update(void)
             }
         }
     }
+    if(Ctype == "ComboBox")
+    {
+        if(!GetCmd.isEmpty())
+        {
+            res = comms->SendMess(GetCmd + "\n");
+            if(res == "") return;
+            int i = comboBox->findText(res.trimmed());
+            if(i < 0) return;
+            comboBox->setCurrentIndex(i);
+        }
+    }
 }
 
 QString Ccontrol::Report(void)
@@ -2231,6 +2318,10 @@ QString Ccontrol::Report(void)
         }
         if(chkBox->isChecked()) return(res + "," + "TRUE");
         else return(res + "," + "FALSE");
+    }
+    if(Ctype == "ComboBox")
+    {
+       return(res + "," + comboBox->currentText());
     }
     return("");
 }
@@ -2285,6 +2376,17 @@ bool Ccontrol::SetValues(QString strVals)
         chkBox->setUpdatesEnabled(true);
         return returnstate;
     }
+    if(Ctype == "ComboBox")
+    {
+        if(!strVals.startsWith(res)) return false;
+        resList = strVals.split(",");
+        if(resList.count() < 2) return false;
+        int i = comboBox->findText(resList[1].trimmed());
+        if(i<0) return false;
+        comboBox->setCurrentIndex(i);
+        comboBoxChanged(resList[1].trimmed());
+        return true;
+    }
     return false;
  }
 
@@ -2313,6 +2415,20 @@ void Ccontrol::Restore(void)
         Vsp->editingFinished();
     }
 }
+
+void Ccontrol::SetList(QString strOptions)
+{
+    if(comboBox != NULL)
+    {
+        comboBox->clear();
+        QStringList resList = strOptions.split(",");
+        for(int i=0;i<resList.count();i++)
+        {
+            comboBox->addItem(resList[i]);
+        }
+    }
+}
+
 
 // The following commands are processed:
 // title            return the setpoint
@@ -2391,6 +2507,15 @@ QString Ccontrol::ProcessCommand(QString cmd)
         if(!cmd.startsWith(res)) return "?";
         if(cmd == res) pbButtonPressed();
     }
+    if(Ctype == "ComboBox")
+    {
+        if(!cmd.startsWith(res)) return "?";
+        QStringList resList = cmd.split("=");
+        int i = comboBox->findText(resList[1].trimmed());
+        if(i < 0) return "?";
+        comboBox->setCurrentIndex(i);
+        comboBoxChanged(comboBox->currentText());
+    }
     return "?";
 }
 
@@ -2414,6 +2539,12 @@ void Ccontrol::chkBoxStateChanged(int state)
     if(comms == NULL) return;
     if(state == Qt::Checked) comms->SendCommand(SetCmd + "\n");
     else if(state == Qt::Unchecked) comms->SendCommand(GetCmd + "\n");
+}
+
+void Ccontrol::comboBoxChanged(QString)
+{
+    if(comms == NULL) return;
+    comms->SendCommand(SetCmd +"," + comboBox->currentText() + "\n");
 }
 
 // **********************************************************************************************

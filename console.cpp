@@ -75,10 +75,13 @@ void Console::setLocalEchoEnabled(bool set)
 void Console::keyPressEvent(QKeyEvent *e)
 {
     QClipboard *clipboard = QApplication::clipboard();
+    QByteArray bksp;
 
    switch (e->key())
    {
         case Qt::Key_Backspace:
+          bksp.append(8);
+          getData(bksp);
         case Qt::Key_Left:
         case Qt::Key_Right:
         case Qt::Key_Up:

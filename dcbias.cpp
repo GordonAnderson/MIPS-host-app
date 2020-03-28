@@ -423,6 +423,7 @@ bool DCBchannel::SetValues(QString strVals)
     title += Title;
     if(!strVals.startsWith(title)) return false;
     resList = strVals.split(",");
+    if(resList[0] != title) return false;
     if(resList.count() < 2) return false;
     if(isShutdown)
     {
@@ -620,6 +621,7 @@ bool DCBoffset::SetValues(QString strVals)
     title += Title;
     if(!strVals.startsWith(title)) return false;
     resList = strVals.split(",");
+    if(resList[0] != title) return false;
     if(resList.count() < 2) return false;
     Voff->setText(resList[1]);
     Voff->setModified(true);
@@ -728,6 +730,7 @@ bool DCBenable::SetValues(QString strVals)
     title += Title;
     if(!strVals.startsWith(title)) return false;
     resList = strVals.split(",");
+    if(resList[0] != title) return false;
     if(resList.count() < 2) return false;
     if(isShutdown)
     {

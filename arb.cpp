@@ -515,6 +515,9 @@ ARBchannel::ARBchannel(QWidget *parent, QString name, QString MIPSname, int x, i
     statusBar = NULL;
     PPP = 32;
     isShutdown = false;
+    Updating = false;
+    UpdateOff = false;
+    qApp->installEventFilter(this);
 }
 
 void ARBchannel::Show(void)
@@ -565,6 +568,41 @@ void ARBchannel::Show(void)
     connect(SWFDIR_REV,SIGNAL(clicked(bool)),this,SLOT(rbChange()));
 }
 
+bool ARBchannel::eventFilter(QObject *obj, QEvent *event)
+{
+    QLineEdit     *le;
+    QString       res;
+    float delta = 0;
+
+   if (((obj == leSWFREQ) || (obj == leSWFVRNG) || (obj == leSWFVAUX) || (obj == leSWFVOFF)) && (event->type() == QEvent::KeyPress))
+   {
+       if(Updating) return true;
+       UpdateOff = true;
+       le = (QLineEdit *)obj;
+       QKeyEvent *key = static_cast<QKeyEvent *>(event);
+       if(key->key() == 16777235) delta = 0.1;
+       if(key->key() == 16777237) delta = -0.1;
+       if((QApplication::queryKeyboardModifiers() & 0xA000000) != 0) delta *= 0.1;
+       if((QApplication::queryKeyboardModifiers() & 0x2000000) != 0) delta *= 10;
+       if((QApplication::queryKeyboardModifiers() & 0x8000000) != 0) delta *= 100;
+       if(delta != 0)
+       {
+          QString myString;
+          if(obj == leSWFREQ) myString.sprintf("%1.0f", leSWFREQ->text().toFloat() + delta*100);
+          if(obj == leSWFVRNG) myString.sprintf("%3.2f", leSWFVRNG->text().toFloat() + delta*10);
+          if(obj == leSWFVAUX) myString.sprintf("%3.2f", leSWFVAUX->text().toFloat() + delta*10);
+          if(obj == leSWFVOFF) myString.sprintf("%3.2f", leSWFVOFF->text().toFloat() + delta*10);
+          ((QLineEdit *)obj)->setText(myString);
+          ((QLineEdit *)obj)->setModified(true);
+          ((QLineEdit *)obj)->editingFinished();
+          UpdateOff = false;
+          return true;
+       }
+   }
+   UpdateOff = false;
+   return QObject::eventFilter(obj, event);
+}
+
 QString ARBchannel::Report(void)
 {
     QString res;
@@ -603,6 +641,7 @@ bool ARBchannel::SetValues(QString strVals)
     title += Title;
     if(!strVals.startsWith(title)) return false;
     resList = strVals.split(",");
+    if(resList[0] != title) return false;
     if(resList.count() < 7) return false;
     leSWFREQ->setText(resList[1]);   leSWFREQ->setModified(true); leSWFREQ->editingFinished();
     if(isShutdown)
@@ -639,6 +678,8 @@ void ARBchannel::Update(void)
 
     if(comms==NULL) return;
     comms->rb.clear();
+    if(UpdateOff) return;
+    Updating = true;
     // Update the line edit boxes
     foreach(QObject *w, gbARB->children())
     {
@@ -659,6 +700,7 @@ void ARBchannel::Update(void)
     res = comms->SendMess("GWFDIR," + QString::number(Channel) +"\n");
     if(res == "FWD") SWFDIR_FWD->setChecked(true);
     if(res == "REV") SWFDIR_REV->setChecked(true);
+    Updating = false;
 }
 
 void ARBchannel::leChange(void)

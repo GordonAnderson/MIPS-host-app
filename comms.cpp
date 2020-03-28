@@ -84,6 +84,7 @@ void Comms::readData2ADCBuffer(void)
     static int Vlength=0,Vnum=0;
     static bool Vlast;
 
+    //qDebug() << "read data to adc buffer " << ADCstate;
     if(ADCbuf == NULL) return;
     if(client.isOpen()) data = client.readAll();
     if(serial->isOpen()) data = serial->readAll();
@@ -102,6 +103,7 @@ void Comms::readData2ADCBuffer(void)
             }
             break;
           case ReadingHeader:
+            //qDebug() << "reading header";
             // Read, 24 bit length, 16 bit vector num, 8 bit last vector flag 0xFF if last
             if(DataPtr == 0) b[0] = data[i];
             if(DataPtr == 1) b[1] = data[i];
@@ -123,6 +125,7 @@ void Comms::readData2ADCBuffer(void)
             }
             break;
           case ReadingData:
+            //qDebug() << "reading data " << DataPtr;
             // Read the data block
             b[DataPtr++] = data[i];
             if(DataPtr >= (Vlength * 2))
@@ -131,6 +134,7 @@ void Comms::readData2ADCBuffer(void)
             }
             break;
           case ReadingTrailer:
+            //qDebug() << "reading trailer";
             // look for 0xAE, 0xEA. This flags end of message
             if((last == 0xAE) && ((quint8)data[i] == 0xEA))
             {
@@ -144,6 +148,7 @@ void Comms::readData2ADCBuffer(void)
             }
             if(ADCstate != ADCdone) break;
           case ADCdone:
+            //qDebug() << "reading done";
             // ADC done so send signal
             emit ADCrecordingDone();
             return;

@@ -1,0 +1,4 @@
+mips.SendCommand("MIPS-1","ADCABORT\n")
+mips.SendCommand("MIPS-1","TBLABRT\n")
+mips.SendCommand("MIPS-1","SMOD,LOC\n")
+mips.SendCommand("MIPS-1","STPADJ,0,0\n")

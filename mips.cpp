@@ -285,6 +285,25 @@
 // 1.68, Nov 10, 2019
 //      1.) Added isTblMode to timing generator
 //      2.) Changed the event control options to .Value and .ValueOff
+// 1.69, Nov 18, 2019
+//      1.) Updated the TCP server read routine to only remove the characters from the buffer that
+//          will fit in the ring buffer. The characters that will not fit are left in the buffer.
+// 1.70, Dec 13, 2019
+//      1.) Updated RFamp interface to properly process enable and disable for pole bias and resolving DC bias
+// 1.71, Jan 13, 2020
+//      1.) Added the SendCommand function to the control panel to allow sending commands to MIPS from the control
+//          pannel config file.
+// 1.72, Jan 23, 2020
+//      1.) Added CheckBox to custom control
+//      2.) Added arrow key to value change to DAC control
+//      3.) Allow control panel script button to be called on every update cycle
+// 1.73, Feb 5, 2020
+//      1.) Added commands to timing generator to return start time value and channel number
+// 1.74, Feb 17, 2020
+//      1.) Fix a bug in the control panel when loading settings files with overlapping names
+//      2.) Added arrow value control to ARB control in the control panel
+// 1.75, March 11, 2020
+//      1.) Added backspace capability to console, this version sends the backspace char, 0x08
 //
 // Planded updates:
 //      - Add ploting capability. Also support this through the Scripting system.
@@ -332,7 +351,7 @@
 #include <QtNetwork/QTcpSocket>
 #include <QInputDialog>
 
-QString Version = "MIPS, Version 1.68 Nov 10, 2019";
+QString Version = "MIPS, Version 1.75 March 11, 2020";
 
 MIPS::MIPS(QWidget *parent) :
     QMainWindow(parent),

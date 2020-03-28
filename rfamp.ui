@@ -235,7 +235,7 @@
      <widget class="QLabel" name="label_7">
       <property name="geometry">
        <rect>
-        <x>15</x>
+        <x>5</x>
         <y>32</y>
         <width>60</width>
         <height>16</height>
@@ -248,7 +248,7 @@
      <widget class="QLabel" name="label_8">
       <property name="geometry">
        <rect>
-        <x>15</x>
+        <x>5</x>
         <y>84</y>
         <width>96</width>
         <height>16</height>
@@ -261,7 +261,7 @@
      <widget class="QLabel" name="label_9">
       <property name="geometry">
        <rect>
-        <x>15</x>
+        <x>5</x>
         <y>108</y>
         <width>86</width>
         <height>16</height>
@@ -274,7 +274,7 @@
      <widget class="QLabel" name="label_10">
       <property name="geometry">
        <rect>
-        <x>15</x>
+        <x>5</x>
         <y>136</y>
         <width>106</width>
         <height>16</height>
@@ -287,7 +287,7 @@
      <widget class="QLabel" name="label_11">
       <property name="geometry">
        <rect>
-        <x>15</x>
+        <x>5</x>
         <y>160</y>
         <width>60</width>
         <height>16</height>
@@ -300,9 +300,9 @@
      <widget class="QLineEdit" name="leSRFAR0">
       <property name="geometry">
        <rect>
-        <x>130</x>
+        <x>122</x>
         <y>30</y>
-        <width>113</width>
+        <width>121</width>
         <height>21</height>
        </rect>
       </property>
@@ -310,9 +310,9 @@
      <widget class="QLineEdit" name="leSRFARDC">
       <property name="geometry">
        <rect>
-        <x>130</x>
+        <x>122</x>
         <y>82</y>
-        <width>113</width>
+        <width>121</width>
         <height>21</height>
        </rect>
       </property>
@@ -320,9 +320,9 @@
      <widget class="QLineEdit" name="leSRFAPB">
       <property name="geometry">
        <rect>
-        <x>130</x>
+        <x>122</x>
         <y>108</y>
-        <width>113</width>
+        <width>121</width>
         <height>21</height>
        </rect>
       </property>
@@ -330,9 +330,9 @@
      <widget class="QLineEdit" name="leSRFARES">
       <property name="geometry">
        <rect>
-        <x>130</x>
+        <x>122</x>
         <y>134</y>
-        <width>113</width>
+        <width>121</width>
         <height>21</height>
        </rect>
       </property>
@@ -340,9 +340,9 @@
      <widget class="QLineEdit" name="leSRFAMZ">
       <property name="geometry">
        <rect>
-        <x>130</x>
+        <x>122</x>
         <y>160</y>
-        <width>113</width>
+        <width>121</width>
         <height>21</height>
        </rect>
       </property>
@@ -366,9 +366,9 @@
      <widget class="QLineEdit" name="leSRFAK">
       <property name="geometry">
        <rect>
-        <x>130</x>
+        <x>122</x>
         <y>56</y>
-        <width>113</width>
+        <width>121</width>
         <height>21</height>
        </rect>
       </property>
@@ -376,7 +376,7 @@
      <widget class="QLabel" name="label_21">
       <property name="geometry">
        <rect>
-        <x>14</x>
+        <x>5</x>
         <y>56</y>
         <width>109</width>
         <height>16</height>

@@ -122,8 +122,12 @@ private:
     QFrame      *frmDAC;
     QLineEdit   *Vdac;
     QLabel      *labels[2];
+    bool         Updating;
+    bool         UpdateOff;
 private slots:
     void VdacChange(void);
+protected:
+    bool eventFilter(QObject *obj, QEvent *event);
 };
 
 class DCbiasGroupsEventFilter : public QObject
@@ -194,6 +198,7 @@ public:
     void    Update(void);
     QString Report(void);
     bool    SetValues(QString strVals);
+    void    SetList(QString strOptions);
     void    Shutdown(void);
     void    Restore(void);
     QString ProcessCommand(QString cmd);
@@ -217,6 +222,7 @@ private:
     QLineEdit             *Vrb;
     QPushButton           *pbButton;
     QCheckBox             *chkBox;
+    QComboBox             *comboBox;
     QLabel                *labels[2];
     bool                  Updating;
     bool                  UpdateOff;
@@ -224,6 +230,7 @@ private slots:
     void VspChange(void);
     void pbButtonPressed(void);
     void chkBoxStateChanged(int);
+    void comboBoxChanged(QString);
 //protected:
 //    bool eventFilter(QObject *obj, QEvent *event);
 };
@@ -332,8 +339,7 @@ private:
     QList<Device *>       devices;
     IFTtiming             *IFT;
     QList<TimingControl *> TC;
-//    TimingControl         *TC;
-    Compressor            *comp;
+    QList<Compressor  *>   comp;
     uint        LogStartTime;
     int         LogPeriod;
     int         UpdateHoldOff;
@@ -347,13 +353,13 @@ private:
     Shutdown    *SD;
     SaveLoad    *SL;
     MIPScomms   *mc;
-    DCBiasGroups     *DCBgroups;
-    QPushButton      *MIPScommsButton;
-    QPushButton      *ARBcompressorButton;
-    QPushButton      *scriptButton;
-    ScriptingConsole *scriptconsole;
-    QUdpSocket       *udpSocket;
-    Help             *help;
+    DCBiasGroups        *DCBgroups;
+    QPushButton         *MIPScommsButton;
+    QList<QPushButton *> ARBcompressorButton;
+    QPushButton         *scriptButton;
+    ScriptingConsole    *scriptconsole;
+    QUdpSocket          *udpSocket;
+    Help                *help;
 public slots:
     void pbSD(void);
     void pbSE(void);

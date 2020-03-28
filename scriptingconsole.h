@@ -48,6 +48,7 @@ public:
     explicit ScriptButton(QWidget *parent, QString name, QString ScriptFile, int x, int y, Properties *prop, QStatusBar *statusbar);
     ~ScriptButton();
     void             Show(void);
+    void             Update(void);
     QString          ProcessCommand(QString cmd);
     QString          Title;
     QString          FileName;
@@ -55,10 +56,13 @@ public:
     QWidget          *p;
     QStatusBar       *sb;
     Properties       *properties;
+    QString          ScriptText;
+    bool             CallOnUpdate;
 private:
     QScriptValue     mips;
     QPushButton      *pbButton;
     QScriptEngine    *engine;
+    void ButtonPressed(bool AlwaysLoad);
 private slots:
     void pbButtonPressed(void);
 };

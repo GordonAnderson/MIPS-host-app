@@ -1,0 +1,74 @@
+// This script is used to setup SLIM-QQQ system to track
+// m/z selected ions using the ADC change logic. The detected
+// change is used to trigger the time table and also change 
+// the ion selection window based on the selected m/z read on the
+// MIPS ADC input.
+//
+// Gordon Anderson
+//	Rev 1.0, feb 6, 2020
+//		- Initial version
+//
+// Initial MIPS setup
+mips.SendCommand("MIPS-1","ADCCHG,0,10\n")
+mips.SendCommand("MIPS-1","ADCCPRM,6,25\n")
+mips.SendCommand("MIPS-1","STBLTSKS,TRUE\n")
+mips.SendCommand("MIPS-1","STBLRETRIG,FALSE\n")
+mips.SendCommand("MIPS-1","SADCMZCAL,1.4009,57.692\n")
+mips.SendCommand("MIPS-1","STBLREPLY,FALSE\n")
+
+timeMode = mips.Command("Timing generation.Time mode, in mS").trim()
+clock = mips.Command("Timing generation.Clock source").trim()
+mips.SendCommand("MIPS-1","STBLCLK," + clock + "\n")
+// Target 1
+mz = mips.Command("m/z targets.1) m/z").trim()
+mS = mips.Command("m/z targets.1) mS").trim()
+if(mz == "") mz = "0"
+if(mS == "") mS = "0"
+cmd = "SMZTARG,0," + mz + "," + (mS * clock/1000).toFixed(0) + "\n"
+mips.SendCommand("MIPS-1",cmd)
+// Target 2
+mz = mips.Command("m/z targets.2) m/z").trim()
+mS = mips.Command("m/z targets.2) mS").trim()
+if(mz == "") mz = "0"
+if(mS == "") mS = "0"
+cmd = "SMZTARG,1," + mz + "," + (mS * clock/1000).toFixed(0) + "\n"
+mips.SendCommand("MIPS-1",cmd)
+// Target 3
+mz = mips.Command("m/z targets.3) m/z").trim()
+mS = mips.Command("m/z targets.3) mS").trim()
+if(mz == "") mz = "0"
+if(mS == "") mS = "0"
+cmd = "SMZTARG,2," + mz + "," + (mS * clock/1000).toFixed(0) + "\n"
+mips.SendCommand("MIPS-1",cmd)
+// Target 4
+mz = mips.Command("m/z targets.4) m/z").trim()
+mS = mips.Command("m/z targets.4) mS").trim()
+if(mz == "") mz = "0"
+if(mS == "") mS = "0"
+cmd = "SMZTARG,3," + mz + "," + (mS * clock/1000).toFixed(0) + "\n"
+mips.SendCommand("MIPS-1",cmd)
+// Target 5
+mz = mips.Command("m/z targets.5) m/z").trim()
+mS = mips.Command("m/z targets.5) mS").trim()
+if(mz == "") mz = "0"
+if(mS == "") mS = "0"
+cmd = "SMZTARG,4," + mz + "," + (mS * clock/1000).toFixed(0) + "\n"
+mips.SendCommand("MIPS-1",cmd)
+
+// Generate and download the timing table
+mips.Command("Timing generation.Frame.Accumulations=0");
+mips.Command("Timing generation.Generate");
+table = mips.Command("Timing generation.Table");
+mips.SendCommand("MIPS-1",table + "\n")
+// Find the adjustable parameter in the table, look for event named "Ion Selection"
+startT = mips.Command("Timing generation.Event.StartT,Ion Selection").trim()
+channel =  mips.Command("Timing generation.Event.Channel,Ion Selection").trim()
+width = mips.Command("Timing generation.Frame.Width").trim()
+cmd = "STPADJ," + startT + "," + channel + "\n"
+mips.SendCommand("MIPS-1",cmd)
+if(timeMode == "FALSE") mips.SendCommand("MIPS-1","SADJRNG," + startT + "," + (width - 100).toFixed(0) + "\n")
+else mips.SendCommand("MIPS-1","SADJRNG," + startT + "," + ((width * clock/1000)-100).toFixed(0) + "\n")
+mips.SendCommand("MIPS-1","TRGTBLADC\n")
+mips.SendCommand("MIPS-1","SMOD,TBL\n")
+
+

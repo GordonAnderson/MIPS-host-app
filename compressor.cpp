@@ -173,6 +173,7 @@ bool Compressor::SetValues(QString strVals)
 
     if(!strVals.startsWith(Title)) return false;
     resList = strVals.split(",");
+    if(resList[0] != Title) return false;
     if(resList.count() < 3) return false;
     QObjectList widgetList = ui->frmCompressor->children();
     widgetList += ui->gbARBmode->children();

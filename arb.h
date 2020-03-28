@@ -102,12 +102,16 @@ private:
     QString      activeVRNG;
     QString      activeVAUX;
     QString      activeVOFF;
+    bool          Updating;
+    bool          UpdateOff;
 private slots:
     void leChange(void);
     void rbChange(void);
     void wfChange(void);
     void wfEdit(void);
     void ReadWaveform(void);
+protected:
+    bool eventFilter(QObject *obj, QEvent *event);
 };
 
 #endif // ARB_H

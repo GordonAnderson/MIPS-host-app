@@ -29,7 +29,9 @@ SGcoeff SG[4] = {{5,35,QList<float>() << -3 << 12 << 17 << 12 << -3},
                  {7,21,QList<float>() << -2 << 3 << 6 << 7 << 6 << 3 << -2},
                  {9,231,QList<float>() << -21 << 14 << 39 << 54 << 59 << 54 <<39 << 14 << -21},
                  {11,429,QList<float>() << -36 << 9 << 44 << 69 << 84 << 89 <<84 << 69 << 44 << 9 << -36}};
-
+// =(-2*A1+3*A2+6*A3+7*A4+6*A5+3*A6-2*A7)/21
+// =(-21*A1+14*A2+39*A3+54*A4+59*A5+54*A6+39*A7+14*A8-21*A9)/231
+// =(-36*A1+9*A2+44*A3+69*A4+84*A5+89*A6+84*A7+69*A8+44*A9+9*A10-39*A11)/429
 Plot::Plot(QWidget *parent, QString Title, QString Yaxis, QString Xaxis, int NumPlots) :
     QDialog(parent),
     ui(new Ui::Plot)

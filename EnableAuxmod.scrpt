@@ -1,0 +1,4 @@
+mips.SendCommand("MIPS-A","ADCCHG,2,10\n")
+mips.SendCommand("MIPS-A","ADCGAIN,2,4\n")
+mips.SendCommand("MIPS-A","DCBCADCOF,1,0.099\n")
+mips.SendCommand("MIPS-A","SDCBADCP,1,T\n")

@@ -135,6 +135,8 @@ ScriptButton::ScriptButton(QWidget *parent, QString name, QString ScriptFile, in
     properties = prop;
     sb = statusbar;
     engine = NULL;
+    CallOnUpdate = false;
+    ScriptText.clear();
 }
 
 ScriptButton::~ScriptButton()
@@ -165,6 +167,11 @@ void ScriptButton::Show(void)
 // if he would like to abort script.
 void ScriptButton::pbButtonPressed(void)
 {
+    ButtonPressed(true);
+}
+
+void ScriptButton::ButtonPressed(bool AlwaysLoad)
+{
     static bool busy = false;
     QMessageBox msgBox;
 
@@ -187,18 +194,30 @@ void ScriptButton::pbButtonPressed(void)
         mips.property("UpdateHalted").call(mips,arg);
         return;
     }
-    // Load Script
-    QFile file(FileName);
-    if(file.open(QIODevice::ReadOnly|QIODevice::Text))
+    // Load Script if needed
+    if((AlwaysLoad) || (ScriptText.isEmpty()))
     {
-        QTextStream stream(&file);
-        QString text = stream.readAll();
-        file.close();
+        QFile file(FileName);
+        if(file.open(QIODevice::ReadOnly|QIODevice::Text))
+        {
+            QTextStream stream(&file);
+            ScriptText = stream.readAll();
+            file.close();
+        }
+        else
+        {
+            if(properties != NULL) properties->Log("Can't open script file: " + FileName);
+            if(sb != NULL) sb->showMessage("Can't open script file: " + FileName);
+            return;
+        }
+    }
+    if(!ScriptText.isEmpty())
+    {
         if(properties != NULL) properties->Log("Script loaded: " + FileName);
         busy = true;
         QApplication::setOverrideCursor(Qt::WaitCursor);
         QApplication::processEvents();
-        QScriptValue result = engine->evaluate(text);
+        QScriptValue result = engine->evaluate(ScriptText);
         if(result.isError())
         {
             if(properties != NULL) properties->Log("Script error: " + result.toString());
@@ -210,11 +229,6 @@ void ScriptButton::pbButtonPressed(void)
             if(sb != NULL) sb->showMessage("Script finished!");
         }
     }
-    else
-    {
-        if(properties != NULL) properties->Log("Can't open script file: " + FileName);
-        if(sb != NULL) sb->showMessage("Can't open script file: " + FileName);
-    }
     busy = false;
     QApplication::restoreOverrideCursor();
 }
@@ -223,9 +237,14 @@ QString ScriptButton::ProcessCommand(QString cmd)
 {
     if(Title == cmd.trimmed())
     {
-        pbButtonPressed();
+        ButtonPressed(false);
         return("");
     }
     else return("?");
+}
+
+void ScriptButton::Update(void)
+{
+    if(CallOnUpdate) ButtonPressed(false);
 }
 

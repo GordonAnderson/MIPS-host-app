@@ -41,6 +41,11 @@ int RingBuffer::size(void)
     return count;
 }
 
+int  RingBuffer::available(void)
+{
+    return (rbSIZE-count);
+}
+
 int RingBuffer::numLines(void)
 {
     return lines;

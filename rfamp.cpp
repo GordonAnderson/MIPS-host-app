@@ -104,7 +104,8 @@ void RFamp::Update(void)
             resList = w->objectName().split("_");
             if(resList.count() == 3)
             {
-                res = "G" + resList[0].mid(3) + "," + QString::number(Channel) + "\n";
+                if(resList[0].mid(4) == "DCPWR") res = "G" + resList[0].mid(4) + "\n";
+                else res = "G" + resList[0].mid(4) + "," + QString::number(Channel) + "\n";
                 res = comms->SendMess(res);
                 if(res == resList[1]) ((QCheckBox *)w)->setChecked(true);
                 if(res == resList[2]) ((QCheckBox *)w)->setChecked(false);
@@ -159,8 +160,16 @@ void RFamp::Updated(void)
         resList = obj->objectName().mid(3).split("_");
         if(resList.count() == 3)
         {
-            if(((QCheckBox *)obj)->isChecked()) comms->SendCommand(resList[0] + "," + QString::number(Channel) + "," + resList[1] + "\n");
-            else comms->SendCommand(resList[0] + "," + QString::number(Channel) + "," + resList[2] + "\n");
+            if(resList[0] == "SDCPWR")
+            {
+                if(((QCheckBox *)obj)->isChecked()) comms->SendCommand(resList[0] + "," + resList[1] + "\n");
+                else comms->SendCommand(resList[0] + "," + resList[2] + "\n");
+            }
+            else
+            {
+               if(((QCheckBox *)obj)->isChecked()) comms->SendCommand(resList[0] + "," + QString::number(Channel) + "," + resList[1] + "\n");
+               else comms->SendCommand(resList[0] + "," + QString::number(Channel) + "," + resList[2] + "\n");
+            }
         }
     }
     if(obj->objectName().startsWith("rbS"))

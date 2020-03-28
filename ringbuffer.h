@@ -19,6 +19,7 @@ public:
     char getch(void);
     int  putch(char c);
     int  size(void);
+    int  available(void);
     int  numLines(void);
     void clear(void);
     void waitforline(int);

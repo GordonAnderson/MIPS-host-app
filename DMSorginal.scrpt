@@ -1,30 +1,18 @@
-//
 // DMS or DMSDMS script for scanning and plotting the data
-//
-// Updated March 12, 2020
-//    - Added logic to use the DMS enable check boxes to control scanning
-//
-dur = mips.Command("Step dur")
-if(mips.Command("DMS2.Enable").trim() == "TRUE")
-{
-   steps = mips.Command("DMS2.Steps")
-   res = "Xrange,0," + (steps * dur).toString()
-   res += "," + mips.Command("DMS2.CVstart").trim() + "," + mips.Command("DMS2.CVend").trim();
-}
-else if(mips.Command("DMS1.Enable").trim() == "TRUE")
-{
-   steps = mips.Command("DMS1.Steps")
-   res = "Xrange,0," + (steps * dur).toString()
-   res += "," + mips.Command("DMS1.CVstart").trim() + "," + mips.Command("DMS1.CVend").trim();
-}
-else
-{
-   mips.popupMessage("At least one DMS channel must be enabled!");
-   throw "Input error"
-}
 mips.CreatePlot("CV scan","Current, pA","CV, volts",2)
 mips.PlotCommand("Plot1,Pos electrometer current pA");
 mips.PlotCommand("Plot2,Neg electrometer current pA");
+steps = mips.Command("DMS1.Steps")
+dur = mips.Command("Step dur")
+res = "Xrange,0," + (steps * dur).toString()
+if(parseFloat(mips.Command("DMS1.CVstart")) != parseFloat(mips.Command("DMS1.CVend")))
+{
+   res += "," + mips.Command("DMS1.CVstart").trim() + "," + mips.Command("DMS1.CVend").trim();
+}
+else if(parseFloat(mips.Command("DMS2.CVstart")) != parseFloat(mips.Command("DMS2.CVend")))
+{
+   res += "," + mips.Command("DMS2.CVstart").trim() + "," + mips.Command("DMS2.CVend").trim();
+}
 mips.PlotCommand(res)
 mips.PlotCommand("Yrange,-1,500")
 if(mips.Command("Steps per CV scan.Param").trim() != "")
@@ -37,7 +25,8 @@ Param = mips.Command("Steps per CV scan.Param").trim()
 if(Param != "")
 {
    start = mips.Command("Steps per CV scan.Start")
-   delta = (mips.Command("Steps per CV scan.Stop") - mips.Command("Steps per CV scan.Start")) / (numscans-1)
+   if(numscans <= 1) delta = (mips.Command("Steps per CV scan.Stop") - mips.Command("Steps per CV scan.Start"))
+   else delta = (mips.Command("Steps per CV scan.Stop") - mips.Command("Steps per CV scan.Start")) / (numscans-1)
 }
 for(scans=0;scans<numscans;scans++)
 {
@@ -55,17 +44,14 @@ for(scans=0;scans<numscans;scans++)
 // This function read one CV scan
 function ReadScan(averages)
 {
-   if(mips.Command("DMS2.Enable").trim() == "TRUE") steps = mips.Command("DMS2.Steps")
-   else if(mips.Command("DMS1.Enable").trim() == "TRUE") steps = mips.Command("DMS1.Steps")
+   steps = mips.Command("DMS1.Steps")
    dur = mips.Command("Step dur")
    mips.PlotCommand("NewGraph,2," + steps.toString());
    for(avg=0;avg<averages;avg++)
    {
       mips.statusMessage("Reading average " + (avg+1).toString() + " of " + averages.toString())
-      mips.UpdateHalted(true)
-      if((mips.Command("DMS1.Enable").trim() == "TRUE") && (mips.Command("DMS2.Enable").trim() == "TRUE")) mips.SendCommand("MIPS","FBSCNSTRT,3\n")
-      else if(mips.Command("DMS1.Enable").trim() == "TRUE") mips.SendCommand("MIPS","FBSCNSTRT,1\n")
-      else if(mips.Command("DMS2.Enable").trim() == "TRUE") mips.SendCommand("MIPS","FBSCNSTRT,2\n")
+      mips.UpdateHalted(true);
+      mips.SendCommand("MIPS","FBSCNSTRT,3\n")
       for(i=0;i<steps;i++)
       {
          res = mips.GetLine("MIPS")

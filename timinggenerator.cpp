@@ -1210,7 +1210,21 @@ QString TimingGenerator::ProcessCommand(QString cmd)
         if(isTableMode()) return("TRUE");
         else return("FALSE");
     }
-    QStringList resList = cmd.split("=");
+    QStringList resList = cmd.split(",");
+    if(resList[0].trimmed() == Title + ".Event.StartT")
+    {
+        for(int i=0;i<Events.count();i++)
+        {
+            if(Events[i]->Name == resList[1].trimmed()) return(QString::number(Events[i]->StartT));
+        }
+        return("?");
+    }
+    if(resList[0].trimmed() == Title + ".Event.Channel")
+    {
+        for(int i=0;i<Events.count();i++) if(Events[i]->Name == resList[1].trimmed()) return(Events[i]->Channel);
+        return("?");
+    }
+    resList = cmd.split("=");
     if(resList[0].trimmed() == Title + ".Frame.Start") le = ui->leFrameStart;
     else if(resList[0].trimmed() == Title + ".Frame.Width") le = ui->leFrameWidth;
     else if(resList[0].trimmed() == Title + ".Frame.Accumulations") le = ui->leAccumulations;
