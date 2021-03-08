@@ -775,6 +775,25 @@
       </property>
      </widget>
     </widget>
+    <widget class="QPushButton" name="pbPaste_2">
+     <property name="geometry">
+      <rect>
+       <x>710</x>
+       <y>375</y>
+       <width>206</width>
+       <height>32</height>
+      </rect>
+     </property>
+     <property name="toolTip">
+      <string>Paste sequence data from the clipboard, must be text, you can not paste from excel. Copy from excel to a text file and then copy from the text file and paste here.</string>
+     </property>
+     <property name="text">
+      <string>Paste text from clipboard</string>
+     </property>
+     <property name="autoDefault">
+      <bool>false</bool>
+     </property>
+    </widget>
    </widget>
    <widget class="QWidget" name="tab_2">
     <attribute name="title">

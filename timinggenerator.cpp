@@ -107,6 +107,8 @@ AcquireData::AcquireData(QWidget *parent)
     Acquiring = false;
     fileName = "U1084A.data";
     TriggerMode = "Software";
+    LastFrameSize = 0;
+    LastAccumulations = 0;
 }
 
 void AcquireData::StartAcquire(QString path, int FrameSize, int Accumulations)
@@ -145,6 +147,9 @@ void AcquireData::StartAcquire(QString path, int FrameSize, int Accumulations)
         StatusMessage += "System mode changed to Table.\n";
     }
     else StatusMessage += "MIPS failed to enter table mode!\n";
+    // Acquire contains the name and full path to the acquire command
+    // line application. This is set in the controlpanel startup
+    // function.
     if(Acquire != "")
     {
         QString cmd = "";
@@ -225,27 +230,47 @@ void AcquireData::StartAcquire(QString path, int FrameSize, int Accumulations)
                 cmd += " " + filePath + "/" + fileName;
             }
         }
+        if(cla != NULL)
+        {
+            if((LastFrameSize != FrameSize) || (LastAccumulations != Accumulations))
+            {
+                disconnect(cla,SIGNAL(Ready()),0,0);
+                disconnect(cla,SIGNAL(AppCompleted()),0,0);
+                disconnect(cla,SIGNAL(DialogClosed()),0,0);
+                delete cla;
+                cla = NULL;
+            }
+        }
         if(cla == NULL)
         {
+           // Here is the command line window has not been created or destroved by
+           // the user.
            cla = new cmdlineapp(p);
-           //           connect(cla,SIGNAL(Ready()),this,SLOT(slotAppReady()),Qt::QueuedConnection);
-           //           connect(cla,SIGNAL(AppCompleted()),this,SLOT(slotAppFinished()),Qt::QueuedConnection);
-           //           connect(cla,SIGNAL(DialogClosed()),this,SLOT(slotDialogClosed()),Qt::QueuedConnection);
+           // connect(cla,SIGNAL(Ready()),this,SLOT(slotAppReady()),Qt::QueuedConnection);
+           // connect(cla,SIGNAL(AppCompleted()),this,SLOT(slotAppFinished()),Qt::QueuedConnection);
+           // connect(cla,SIGNAL(DialogClosed()),this,SLOT(slotDialogClosed()),Qt::QueuedConnection);
            connect(cla,SIGNAL(Ready()),this,SLOT(slotAppReady()));
            connect(cla,SIGNAL(AppCompleted()),this,SLOT(slotAppFinished()));
            connect(cla,SIGNAL(DialogClosed()),this,SLOT(slotDialogClosed()));
         }
         cla->appPath = cmd;
+        fileName.remove(" -L");
+        fileName.remove(" -l");
+        cla->appPathNoOptions = filePath + "/" + fileName;
+        emit dataFileDefined(cla->appPathNoOptions);
         cla->Clear();
         cla->show();
         cla->raise();
         cla->AppendText(StatusMessage);
         cla->ReadyMessage = "Ready";
         cla->InputRequest = "? Y/N :";
+        cla->ContinueMessage = "Acquire complete, continue?: ";
         if(filePath != "") cla->fileName = filePath + "/Acquire.data";
         cla->Execute();
         Acquiring = true;
         if(properties != NULL) properties->Log("Aquire app started: " + filePath + "/Acquire.data");
+        LastFrameSize = FrameSize;
+        LastAccumulations = Accumulations;
     }
     else
     {
@@ -344,6 +369,8 @@ TimingControl::TimingControl(QWidget *parent, QString name, QString MIPSname, in
     Acquiring = false;
     Downloading = false;
     fileName = "U1084A.data";
+    FrameCtAdj = 1;
+    AlwaysGenerate = false;
 }
 
 void TimingControl::Show(void)
@@ -367,6 +394,7 @@ void TimingControl::Show(void)
     TG->Abort = Abort;
     TG->Edit = Edit;
     TG->properties = properties;
+    TG->FrameCtAdj = FrameCtAdj;
     // Create the AcquireData object and init
     AD = new class AcquireData(p);
     AD->fileName = fileName;
@@ -374,6 +402,7 @@ void TimingControl::Show(void)
     AD->statusBar = statusBar;
     AD->properties = properties;
     connect(AD,SIGNAL(dataAcquired(QString)),this,SLOT(slotDataAcquired(QString)));
+    connect(AD,SIGNAL(dataFileDefined(QString)),this,SLOT(slotDataFileDefined(QString)));
 }
 
 void TimingControl::pbEdit(void)
@@ -431,6 +460,7 @@ void TimingControl::pbTrigger(void)
     AD->fileName = fileName;
     AD->TriggerMode = TG->ui->comboTriggerSource->currentText();
     if(properties != NULL) properties->Log("Trigger mode: " + AD->TriggerMode);
+    if(AlwaysGenerate) TG->ui->leTable->setText("");
     if(TG->ui->leTable->text() == "") TG->slotGenerate();
     Downloading = true;
     // Set the external clock frequency
@@ -450,6 +480,11 @@ void TimingControl::pbTrigger(void)
 void TimingControl::slotDataAcquired(QString filepath)
 {
     emit dataAcquired(filepath);
+}
+
+void TimingControl::slotDataFileDefined(QString filepath)
+{
+    emit dataFileDefined(filepath);
 }
 
 void TimingControl::slotEventChanged(QString ECname, QString Val)
@@ -884,8 +919,8 @@ int   TimingGenerator::ConvertToCount(QString val)
                 }
             }
         }
-        else if(reslist[i] == "+") sign *=  1;
-        else if(reslist[i] == "-") sign *= -1;
+        else if(reslist[i] == "+") sign =  1;
+        else if(reslist[i] == "-") sign = -1;
         else
         {
             foreach(Event *evt, Events)
@@ -929,7 +964,7 @@ QString TimingGenerator::GenerateMuxSeq(QString Seq)
     for(int i=0;i<l;i++) if(Seq[i] == '1') InjectionPoints.append((i * ConvertToCount(ui->leFrameWidth->text()) / (l))  + ConvertToCount(ui->leFrameStart->text()));
     slotEventUpdated();
     table.clear();
-    if(ui->comboTriggerSource->currentText() == "Software") table = "STBLDAT;0:[A:" + QString::number(ui->leAccumulations->text().toInt() + 1);
+    if(ui->comboTriggerSource->currentText() == "Software") table = "STBLDAT;0:[A:" + QString::number(ui->leAccumulations->text().toInt() + FrameCtAdj);
     else table = "STBLDAT;0:[A:" + QString::number(ui->leAccumulations->text().toInt());
     foreach(Event *evt, Events)
     {
@@ -937,6 +972,39 @@ QString TimingGenerator::GenerateMuxSeq(QString Seq)
         evt->StartT = ConvertToCount(evt->Start);
         evt->WidthT = ConvertToCount(evt->Width);
     }
+    // Do some validation tests, make sure the required events are defined, also make sure the sum of
+    // fill time, trap time, and release time will fit between the two closest injection points
+    int events_found=0;
+    int TotalInjectEventTime = 0;
+    int InjectTime = 0;
+    foreach(Event *evt, Events)
+    {
+        if(evt->Name == "Fill time") {events_found++; TotalInjectEventTime += ConvertToCount(evt->Width);}
+        if(evt->Name == "Trap time") {events_found++; TotalInjectEventTime += ConvertToCount(evt->Width);}
+        if(evt->Name == "Release time") {events_found++; TotalInjectEventTime += ConvertToCount(evt->Width);}
+        if(evt->Name == "Inject time") {events_found++; InjectTime = ConvertToCount(evt->Start);}
+    }
+    if((events_found != 4) || (maxCount/l < TotalInjectEventTime) || (InjectTime != 0))
+    {
+        QMessageBox msgBox;
+        QString msg = "Invalid pulse sequence! The following requirements\n";
+        msg +=        "must be met:\n";
+        msg +=        "  The following events must be defined:\n";
+        msg +=        "       Fill Time, \n";
+        msg +=        "       Trap time, \n";
+        msg +=        "       Release time, \n";
+        msg +=        "       Inject time, \n";
+        msg +=        "  Inject time Start must equal 0.\n";
+        msg +=        "  Fill time, Trap time, and Release time are relative\n";
+        msg +=        "  to Inject time.\n";
+        msg +=        "  The sum of Fill time, Trap time, and release time\n";
+        msg +=        "  widths must be less than\n";
+        msg +=        "  frame width / 2^(mux order -1).\n";
+        msgBox.setText(msg);
+        msgBox.exec();
+        return "";
+    }
+    // End of validation testing
     int FrameStartT = ConvertToCount(ui->leFrameStart->text());
     for(int i=0;i <= maxCount;i++)
     {
@@ -1009,7 +1077,7 @@ void  TimingGenerator::slotGenerate(void)
     if(ui->comboMuxOrder->currentText() != "None") return;
     slotEventUpdated();
     table.clear();
-    if(ui->comboTriggerSource->currentText() == "Software") table = "STBLDAT;0:[A:" + QString::number(ui->leAccumulations->text().toInt() + 1);
+    if(ui->comboTriggerSource->currentText() == "Software") table = "STBLDAT;0:[A:" + QString::number(ui->leAccumulations->text().toInt() + FrameCtAdj);
     else table = "STBLDAT;0:[A:" + QString::number(ui->leAccumulations->text().toInt());
     foreach(Event *evt, Events)
     {

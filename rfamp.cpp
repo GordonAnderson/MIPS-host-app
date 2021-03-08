@@ -101,6 +101,7 @@ void RFamp::Update(void)
         else if(w->objectName().contains("chk"))
         {
             // Checkbox names encode the command and response for check and uncheck
+            // This has a bug in the PWR command, March 4, 2021
             resList = w->objectName().split("_");
             if(resList.count() == 3)
             {
@@ -248,7 +249,7 @@ bool RFamp::SetValues(QString strVals)
                 if(ctrlList.count() >= 3)
                 {
                     if((ctrlList[0] == resList[1]) && (ctrlList[1] == resList[2])) {((QCheckBox *)w)->setChecked(true); return(true);}
-                    if((ctrlList[0] == resList[1]) && (ctrlList[2] == resList[2])) {((QCheckBox *)w)->setChecked(true); return(true);}
+                    if((ctrlList[0] == resList[1]) && (ctrlList[2] == resList[2])) {((QCheckBox *)w)->setChecked(false); return(true);}
                     ((QCheckBox *)w)->clicked();
                 }
             }

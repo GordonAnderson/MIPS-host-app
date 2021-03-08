@@ -1,0 +1,40 @@
+start = mips.Command("Spectrum.Start")
+stop = mips.Command("Spectrum.Stop")
+step = mips.Command("Spectrum.Step")
+num = (parseFloat(stop) - parseFloat(start) )/ parseFloat(step)
+mips.CreatePlot("Spectrum","intensity","m/z",1)
+mips.PlotCommand("Plot1,Electrometer current pA");
+res = "Xrange,0," + num.toString() + "," + start.toString().trim() + "," +  stop.toString().trim()
+mips.PlotCommand(res)
+mips.PlotCommand("Yrange,-1,5")
+mips.PlotCommand("NewGraph,1," + num.toString());
+i = 0
+mips.UpdateHalted(true)
+for(mz=parseFloat(start); mz<parseFloat(stop); mz+=parseFloat(step))
+{
+   // Set the m/z value
+   mips.SendCommand("MIPS-2","SRFAMZ,1,"+mz.toString()+" \n")
+   mips.SendCommand("MIPS-2","RFAQUPDATE,1\n")
+   // Delay
+   mips.msDelay(500)
+   mips.Command("Ion cur.Update")
+   mips.msDelay(5)
+   mips.Command("Ion cur.Update")
+   // Read current, force an update then read
+   current=parseFloat(mips.Command("Ion cur"))
+   if(current == 0)
+   {
+      mips.msDelay(5)
+      mips.Command("Ion cur.Update")
+      current=parseFloat(mips.Command("Ion cur"))
+   }
+   // Plot
+  // mips.PlotCommand("AddPoint," + i.toString() + "," + mz.toString() + "," + current.toString())
+ mips.PlotCommand("AddPoint," + i.toString() + "," + i.toString() + "," + current.toString())
+  mips.PlotCommand("Plot");
+   mips.PlotCommand("Refresh"); 
+   i = i+1
+}
+mips.UpdateHalted(false);
+mips.PlotCommand("Plot");
+mips.PlotCommand("Refresh");  

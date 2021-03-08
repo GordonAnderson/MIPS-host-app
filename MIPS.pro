@@ -58,7 +58,8 @@ SOURCES += main.cpp\
     compressor.cpp \
     properties.cpp \
     plot.cpp \
-    device.cpp
+    device.cpp \
+    shuttertg.cpp
 
 HEADERS  += mips.h \
     console.h \
@@ -96,7 +97,8 @@ HEADERS  += mips.h \
     compressor.h \
     properties.h \
     plot.h \
-    device.h
+    device.h \
+    shuttertg.h
 
 FORMS    += mips.ui \
     settingsdialog.ui \
@@ -117,7 +119,8 @@ FORMS    += mips.ui \
     timinggenerator.ui \
     compressor.ui \
     properties.ui \
-    plot.ui
+    plot.ui \
+    shuttertg.ui
 
 RESOURCES += \
     files.qrc

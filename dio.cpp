@@ -288,6 +288,7 @@ DIOchannel::DIOchannel(QWidget *parent, QString name, QString MIPSname, int x, i
     Y      = y;
     Channel = "A";
     comms  = NULL;
+    ReadOnly  = false;
 }
 
 void DIOchannel::Show(void)
@@ -296,7 +297,8 @@ void DIOchannel::Show(void)
     DIO = new QCheckBox(frmDIO); DIO->setGeometry(0,0,170,21);
     DIO->setText(Title);
     DIO->setToolTip(MIPSnm + " DIO channel " + Channel);
-    connect(DIO,SIGNAL(stateChanged(int)),this,SLOT(DIOChange()));
+    if(Channel > "P") ReadOnly = true;
+    connect(DIO,SIGNAL(clicked(bool)),this,SLOT(DIOChange(bool)));
 }
 
 QString DIOchannel::Report(void)
@@ -370,10 +372,18 @@ void DIOchannel::Update(void)
     DIO->blockSignals(oldState);
 }
 
-void DIOchannel::DIOChange(void)
+void DIOchannel::DIOChange(bool  state)
 {
    QString res;
 
+   if(ReadOnly)
+   {
+      bool oldState = DIO->blockSignals(true);
+      if(state) DIO->setChecked(false);
+      else DIO->setChecked(true);
+      DIO->blockSignals(oldState);
+      return;
+   }
    if(comms == NULL) return;
    if(DIO->checkState()) res ="SDIO," + Channel + ",1\n";
    else  res ="SDIO," + Channel + ",0\n";

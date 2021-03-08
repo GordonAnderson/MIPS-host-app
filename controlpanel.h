@@ -20,6 +20,7 @@
 #include "scriptingconsole.h"
 #include "plot.h"
 #include "device.h"
+#include "shuttertg.h"
 
 #include <QDialog>
 #include <QDebug>
@@ -338,11 +339,13 @@ private:
     QList<Plot *>         plots;
     QList<Device *>       devices;
     IFTtiming             *IFT;
+    ShutterTG             *shutterTG;
     QList<TimingControl *> TC;
     QList<Compressor  *>   comp;
     uint        LogStartTime;
     int         LogPeriod;
     int         UpdateHoldOff;
+    int         SerialWatchDog;
     bool        UpdateStop;
     bool        ShutdownFlag;
     bool        RestoreFlag;
@@ -372,6 +375,7 @@ public slots:
     void DCBgroupDisable(void);
     void DCBgroupEnable(void);
     void slotDataAcquired(QString filepath);
+    void slotDataFileDefined(QString filepath);
     void pbScript(void);
     void popupHelp(QPoint);
     void slotGeneralHelp(void);

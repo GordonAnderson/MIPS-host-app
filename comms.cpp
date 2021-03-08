@@ -5,6 +5,7 @@ Comms::Comms(SettingsDialog *settings, QString Host, QStatusBar *statusbar)
 {
     p = settings->settings();
     sb = statusbar;
+    client_connected = false;
     host = Host;
     serial = new QSerialPort(this);
     keepAliveTimer = new QTimer;
@@ -871,7 +872,7 @@ void Comms::handleError(QSerialPort::SerialPortError error)
 {
     if (error == QSerialPort::ResourceError)
     {
-        qDebug() << "serial port error";
+//        qDebug() << "serial port error";
         QThread::sleep(1);
 //        reopenSerialPort();
 //        return;

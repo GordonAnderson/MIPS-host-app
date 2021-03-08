@@ -9,10 +9,15 @@ cmdlineapp::cmdlineapp(QWidget *parent) :
     ui->plot->hide();
     ReadyMessage = "";
     InputRequest = "";
+    ContinueMessage = "";
     fileName = "";
     responseTimer = new QTimer;
+    messageTimer = new QTimer;
+    messages.clear();
+    process.close();
 
     cmdlineapp::setWindowTitle("Acquire");
+    connect(messageTimer, SIGNAL(timeout()), this, SLOT(messageProcessor()));
     connect(responseTimer, SIGNAL(timeout()), this, SLOT(sendNO()));
     connect(&process,SIGNAL(readyReadStandardOutput()),this,SLOT(readProcessOutput()));
     connect(&process,SIGNAL(readyReadStandardError()),this,SLOT(readProcessOutput()));
@@ -55,6 +60,19 @@ void cmdlineapp::Execute(void)
     QStringList arguments;
 
     cmdlineapp::setWindowTitle("Acquire, " + appPath);
+    if(process.isOpen())
+    {
+        // Here if the process is still running, so its waiting for a Y
+        // to continue. Then it will wait for a filename with no options.
+        // "Enter file name: "
+        // Send Y
+        ui->txtTerm->appendPlainText("Acquire loop is restarting...\n");
+        // Messages to send to acquire app to cause a restart
+        messages.append("Y");
+        messages.append(appPathNoOptions);
+        messageTimer->start(2000);
+        return;
+    }
     arguments << "-c";
     arguments << appPath;
 #if defined(Q_OS_MAC)
@@ -102,13 +120,18 @@ void cmdlineapp::plotDataPoint(QString mess)
     }
 }
 
-void cmdlineapp::sendNO(void)
+void cmdlineapp::sendString(QString mess)
 {
-    process.write("N\n");
+    process.write((char*)mess.data());
     ui->txtTerm->moveCursor (QTextCursor::End);
-    ui->txtTerm->insertPlainText ("N\n");
+    ui->txtTerm->insertPlainText (mess);
     ui->txtTerm->moveCursor (QTextCursor::End);
     ui->leCommand->setText("");
+}
+
+void cmdlineapp::sendNO(void)
+{
+    sendString("N\n");
     responseTimer->stop();
 }
 
@@ -120,6 +143,13 @@ void cmdlineapp::readProcessOutput(void)
 
     mess = process.readAllStandardOutput();
     if(ReadyMessage != "") if(mess.contains(ReadyMessage)) emit Ready();
+    if(ContinueMessage != "") if(mess.contains(ContinueMessage))
+    {
+        // If here then the acquire app signaled it finished the acquire and
+        // its ready to start another acquire
+        AcquireFinishing();
+        emit AppCompleted();
+    }
     if(InputRequest != "")
     {
         if(mess.contains(InputRequest))
@@ -165,7 +195,7 @@ void cmdlineapp::readMessage(void)
     ui->leCommand->setText("");
 }
 
-void cmdlineapp::AppFinished(void)
+void cmdlineapp::AcquireFinishing(void)
 {
     // If filename has been defined save all the data
     // in txtTerm to the file
@@ -182,7 +212,24 @@ void cmdlineapp::AppFinished(void)
         }
     }
     ui->plot->hide();
-    ui->txtTerm->appendPlainText("App signaled its finished!");
+    ui->txtTerm->appendPlainText("App signaled its finished!\n");
+}
+
+void cmdlineapp::AppFinished(void)
+{
+    AcquireFinishing();
     process.close();
     emit AppCompleted();
+}
+
+void cmdlineapp::messageProcessor(void)
+{
+    if(messages.count() != 0)
+    {
+        //sendString(messages[0]);
+        ui->leCommand->setText(messages[0]);
+        readMessage();
+        messages.removeAt(0);
+    }
+    else messageTimer->stop();
 }

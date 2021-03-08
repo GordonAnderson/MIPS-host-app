@@ -154,7 +154,9 @@ ADCchannel::ADCchannel(QWidget *parent, QString name, QString MIPSname, int x, i
     Units = "V";
     m = 1;
     b = 0;
+    U = 0;
     Format = "%.3f";
+    LLimit.clear();
 }
 
 void ADCchannel::Show(void)
@@ -169,16 +171,24 @@ void ADCchannel::Show(void)
 QString ADCchannel::Report(void)
 {
     QString res;
+    QString title;
 
-    res = Title + "," + Vadc->text();
+    title.clear();
+    if(p->objectName() != "") title = p->objectName() + ".";
+    title += Title;
+    res = title + "," + Vadc->text();
     return(res);
 }
 
 bool ADCchannel::SetValues(QString strVals)
 {
     QStringList resList;
+    QString title;
 
-    if(!strVals.startsWith(Title)) return false;
+    title.clear();
+    if(p->objectName() != "") title = p->objectName() + ".";
+    title += Title;
+    if(!strVals.startsWith(title)) return false;
     resList = strVals.split(",");
     if(resList.count() < 2) return false;
     Vadc->setText(resList[1]);
@@ -193,8 +203,13 @@ bool ADCchannel::SetValues(QString strVals)
 // returns "?" if the command could not be processed
 QString ADCchannel::ProcessCommand(QString cmd)
 {
-    if(!cmd.startsWith(Title)) return "?";
-    if(cmd == Title) return Vadc->text();
+    QString title;
+
+    title.clear();
+    if(p->objectName() != "") title = p->objectName() + ".";
+    title += Title;
+    if(!cmd.startsWith(title)) return "?";
+    if(cmd == title) return Vadc->text();
     return "?";
 }
 
@@ -208,7 +223,13 @@ void ADCchannel::Update(void)
     res = "ADC,"  + QString::number(Channel) + "\n";
     res = comms->SendMess(res);
     if(res == "") return;
-    res.sprintf(Format.toStdString().c_str(),res.toFloat() * m + b);
+    float Volts = res.toFloat() * m + b;
+    if(U != 0)
+    {
+        res.sprintf(Format.toStdString().c_str(),pow(10, Volts - U));
+        if(!LLimit.isEmpty()) if(Volts < LLimit.toFloat()) res = "OFF";
+    }
+    else res.sprintf(Format.toStdString().c_str(),Volts);
     if(!Vadc->hasFocus()) Vadc->setText(res);
 }
 

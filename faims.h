@@ -65,6 +65,8 @@ private slots:
     void FAIMSselectLogFile(void);
     void slotLinearTrigOut(void);
     void slotStepTrigOut(void);
+    void slotFAIMSautoTune(void);
+    void slotFAIMSautoTuneAbort(void);
 };
 
 #endif // FAIMS_H

@@ -304,6 +304,35 @@
 //      2.) Added arrow value control to ARB control in the control panel
 // 1.75, March 11, 2020
 //      1.) Added backspace capability to console, this version sends the backspace char, 0x08
+// 1.76, March 30, 2020
+//      1.) added valitity testing to the mux timing generation
+//      2.) fixed a sign bug in the timing generator
+// 1.77, April 25, 2020
+//      1.) Fixed a bug in the automatic serial port reconnection that only happened on a PC.
+//      2.) Added SerialWatchDog support.
+// 1.78, May 10, 2020
+//      1.) Added the Shutter timing control to the control panel
+// 1.79, May 14, 2020
+//      1.) Redesigned the Shutter timing control, it have many bugs!
+// 1.80, Sept 11, 2020
+//      Updates for the 2nd generation softlanding systems
+//      1.) Updated the ADC function to use the LOG output on gauges, also
+//          has low threshold that will display OFF when gauge output is below limit.
+//      2.) Disable all input of DIO input channels
+//      3.) Allow DIO disable in control panel
+//      4.) Fixed but in run script button
+//      5.) Fixed bug in restoring RF quad enable state
+//      6.) Added On exit script button
+// 1.81, Dec 6, 2020
+//      1.) Added time sweep function to shutter timing generator
+// 1.82, Jan 26, 2021
+//      1.) Updated the device serial opject to support 57600 baud
+//      2.) Added .Update command to device serail object to support the spectrum script
+// 1.83, Feb 4, 2021
+//      1.) Update the acquire system to support an accquire app that keeps running and
+//          allows you to restart.
+// 1.84, Feb 28, 2021
+//      1.) Updated FAIMS to include auto tune options and curtain supply control.
 //
 // Planded updates:
 //      - Add ploting capability. Also support this through the Scripting system.
@@ -351,12 +380,18 @@
 #include <QtNetwork/QTcpSocket>
 #include <QInputDialog>
 
-QString Version = "MIPS, Version 1.75 March 11, 2020";
+QString Version = "MIPS, Version 1.84 Feb 28, 2021";
 
 MIPS::MIPS(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MIPS)
 {
+
+//    qDebug() << "hi";
+//    float fval;
+//    std::sscanf("&S=,Range=002nA,-0.0378,nA", "%*16c%f",&fval);
+//    qDebug() << fval;
+
     ui->setupUi(this);
     ui->tabMIPS->setElideMode(Qt::ElideNone);
     ui->tabMIPS->setUsesScrollButtons(true);

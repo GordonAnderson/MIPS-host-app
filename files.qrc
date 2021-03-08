@@ -6,6 +6,7 @@
         <file>SoftLanding.png</file>
         <file>IFT_INJ_Purdue_0004.jpg</file>
         <file>IMStiming.png</file>
+        <file>ShutterTG.png</file>
     </qresource>
     <qresource prefix="/">
         <file>MIPScommands.txt</file>

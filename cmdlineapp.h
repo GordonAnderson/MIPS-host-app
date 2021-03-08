@@ -33,9 +33,12 @@ public:
     void reject();
     QProcess process;
     QString  appPath;
+    QString  appPathNoOptions;
     QString  fileName;
     QString  ReadyMessage;
+    QString  ContinueMessage;
     QString  InputRequest;
+    QStringList messages;
     void Execute(void);
     void Clear(void);
     void Dismiss(void);
@@ -46,12 +49,16 @@ private:
     void setupPlot(QString mess);
     void plotDataPoint(QString mess);
     QTimer   *responseTimer;
+    QTimer   *messageTimer;
+    void AcquireFinishing(void);
+    void sendString(QString mess);
 
 private slots:
     void readProcessOutput(void);
     void readMessage(void);
     void AppFinished(void);
     void sendNO(void);
+    void messageProcessor(void);
 };
 
 #endif // CMDLINEAPP_H

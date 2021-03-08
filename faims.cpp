@@ -68,6 +68,8 @@ FAIMS::FAIMS(Ui::MIPS *w, Comms *c)
     connect(fui->pbFMabortLinear,SIGNAL(pressed()),this,SLOT(FAIMSabortLinearScan()));
     connect(fui->pbFMstartStep,SIGNAL(pressed()),this,SLOT(FAIMSstartStepScan()));
     connect(fui->pbFMabortStep,SIGNAL(pressed()),this,SLOT(FAIMSabortStepScan()));
+    connect(fui->pbFAIMSautoTune,SIGNAL(pressed()),this,SLOT(slotFAIMSautoTune()));
+    connect(fui->pbFAIMSautoTuneAbort,SIGNAL(pressed()),this,SLOT(slotFAIMSautoTuneAbort()));
     connect(fui->rbSFMLOCK_FALSE,SIGNAL(clicked(bool)),this,SLOT(FAIMSlockOff()));
     connect(fui->rbSFMLOCK_TRUE,SIGNAL(clicked(bool)),this,SLOT(FAIMSlockOn()));
     connect(fui->pbSelectLogFile,SIGNAL(pressed()),this,SLOT(FAIMSselectLogFile()));
@@ -664,4 +666,15 @@ void FAIMS::slotStepTrigOut(void)
     if(fui->comboFMstepTrigOut->currentText() == "D Active low") comms->SendCommand("SDIO,D,1\n");
 }
 
+void FAIMS::slotFAIMSautoTune(void)
+{
+    if(comms == NULL) return;
+    comms->SendCommand("SFMTUNE\n");
+}
+
+void FAIMS::slotFAIMSautoTuneAbort(void)
+{
+    if(comms == NULL) return;
+    comms->SendCommand("SFMTABRT\n");
+}
 

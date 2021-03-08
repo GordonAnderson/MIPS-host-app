@@ -1,0 +1,87 @@
+// SLIM-QQQ target list script
+//
+// This script is desiged to setup the SLIM-QQQ system using two Level Detection
+// Modules. One in MIPS-A to select the table based on m/z selection from QUAD
+// and one on MIPS-B used to set the prefilter delay time. This script will
+// configure the MIPS system to use the level detector and then read a csv file
+// that contains the pulse sequence tables and the lookup tables.
+//
+// Gordon Anderson
+//
+errors = 0
+messages = 2;
+// Make sure we are in local mode
+if(!mips.SendCommand("MIPS-A","SMOD,LOC\n")) errors++;
+if(!mips.SendCommand("MIPS-B","SMOD,LOC\n")) errors++;
+mips.popupMessage("SLIM-QQQ, rev 1.0 2020")
+TargetList = mips.SelectFile("Open","Select TargetList file","csv")
+maxLines = mips.ReadCSVfile(TargetList,",")
+mips.popupMessage(maxLines + " entries found in TargetList file")
+for(line = 0; line < maxLines; line++)
+{
+   token = mips.ReadCSVentry(line,0)
+   if(token == "MIPStables")
+   {
+     for(++line; line < maxLines; line++)
+     {
+        token = mips.ReadCSVentry(line,0)
+        if(token == "MIPStables")  break;
+        if(token == "LookupTable") break;
+        // If hear then process the table entry and send tables to selected MIPS
+        MIPSname = mips.ReadCSVentry(line,0)
+        TableNum = mips.ReadCSVentry(line,1)
+        Table = ""
+        entry = 2
+        while(true)
+        {
+           token = mips.ReadCSVentry(line,entry++)
+           if(token == "") break;
+           if(Table == "") Table += token
+           else Table += "," + token
+        }
+        if(MIPSname == "") break;
+        if(TableNum == "") break;
+        if(Table == "") break;
+        // Now send the table to MIPS
+        messages++;
+        if(!mips.SendCommand(MIPSname,"STBLNUM," + TableNum + "\n")) errors++;
+        messages++;
+        if(!mips.SendCommand(MIPSname,Table)) errors++;
+        //mips.popupMessage(Table)
+     }
+     mips.SendCommand(MIPSname,"STBLNUM,1\n")
+   }
+   if(token == "LookupTable")
+   {
+     for(++line; line < maxLines; line++)
+     {
+        token = mips.ReadCSVentry(line,0)
+        if(token == "MIPStables")  break;
+        if(token == "LookupTable") break;
+        MIPSname = mips.ReadCSVentry(line,0)
+        LookupIndex = mips.ReadCSVentry(line,1)
+        Lval = mips.ReadCSVentry(line,2)
+        ADCval = mips.ReadCSVentry(line,3)
+        if(MIPSname == "") break;
+        if(LookupIndex == "") break;
+        if(Lval == "") break;
+        if(ADCval == "") break;
+        // Send the lookup table entry to MIPS
+        cmd = "TWI1CMD,50,STBLENTRY," + LookupIndex + "," + Lval + "," + ADCval
+        messages++;
+        if(!mips.SendCommand(MIPSname,cmd + "\n")) errors++;
+        //mips.popupMessage(cmd)
+     }
+     line--;
+   }
+}
+//mips.popupMessage("Script finished, " + messages + " messages sent, " + errors + " send errors")
+mips.statusMessage("Script finished, " + messages + " messages sent, " + errors + " send errors")
+// If no errors then put MIPS-A in table mode and we are ready to go!
+if(errors == 0)
+{
+  mips.SendCommand("MIPS-B","SMOD,TBL\n")
+  mips.SendCommand("MIPS-B","CARBADLY,32,14\n")
+  mips.SendCommand("MIPS-A","SMOD,TBL\n")
+  mips.SendCommand("MIPS-A","TRIGCHG,32\n")
+}

@@ -32,7 +32,6 @@ DCbias::DCbias(Ui::MIPS *w, Comms *c)
 bool DCbias::myEventFilter(QObject *obj, QEvent *event)
 {
     QLineEdit *le;
-    QString res;
     float delta = 0;
 
    if (obj->objectName().startsWith("leSDCB_") && (event->type() == QEvent::KeyPress))
@@ -47,7 +46,7 @@ bool DCbias::myEventFilter(QObject *obj, QEvent *event)
        if((QApplication::queryKeyboardModifiers() & 0x2000000) != 0) delta *= 10;
        if((QApplication::queryKeyboardModifiers() & 0x8000000) != 0) delta *= 100;
        // Get range for this channel
-       int ch = obj->objectName().mid(7).toInt();
+       int ch = obj->objectName().midRef(7).toInt();
        if(ch>24) ch = 25;
        else if(ch>16) ch = 17;
        else if(ch>8) ch = 9;
@@ -65,7 +64,7 @@ bool DCbias::myEventFilter(QObject *obj, QEvent *event)
           {
              le->setText(myString);
              le->setModified(true);
-             le->editingFinished();
+             emit le->editingFinished();
              return true;
           }
        }
@@ -109,7 +108,7 @@ void DCbias::ApplyDelta(QString GrpName, float change)
                         // Read its value and change
                         leDCB->setText(QString::number(leDCB->text().toFloat() - change));
                         leDCB->setModified(true);
-                        leDCB->editingFinished();
+                        emit leDCB->editingFinished();
                     }
                 }
             }
@@ -391,7 +390,7 @@ bool DCBchannel::eventFilter(QObject *obj, QEvent *event)
            myString.sprintf("%3.2f", Vsp->text().toFloat() + delta);
            Vsp->setText(myString);
            Vsp->setModified(true);
-           Vsp->editingFinished();
+           emit Vsp->editingFinished();
            UpdateOff = false;
            return true;
         }
@@ -435,7 +434,7 @@ bool DCBchannel::SetValues(QString strVals)
         Vsp->setText(resList[1]);
         CurrentVsp = Vsp->text().toFloat();
         Vsp->setModified(true);
-        Vsp->editingFinished();
+        emit Vsp->editingFinished();
     }
     return true;
  }
@@ -460,7 +459,7 @@ QString DCBchannel::ProcessCommand(QString cmd)
     {
        Vsp->setText(resList[1].trimmed());
        Vsp->setModified(true);
-       Vsp->editingFinished();
+       emit Vsp->editingFinished();
        return "";
     }
     return "?";
@@ -548,7 +547,7 @@ void DCBchannel::VspChange(void)
               item->Vsp->setText(QString::number(item->CurrentVsp,'f',2));
               item->CurrentVsp = item->Vsp->text().toFloat();
               item->Vsp->setModified(true);
-              item->Vsp->editingFinished();
+              emit item->Vsp->editingFinished();
            }
        }
    }
@@ -563,7 +562,7 @@ void DCBchannel::Shutdown(void)
     activeVoltage = Vsp->text();
     Vsp->setText("0");
     Vsp->setModified(true);
-    Vsp->editingFinished();
+    emit Vsp->editingFinished();
 }
 
 void DCBchannel::Restore(void)
@@ -572,7 +571,7 @@ void DCBchannel::Restore(void)
     isShutdown = false;
     Vsp->setText(activeVoltage);
     Vsp->setModified(true);
-    Vsp->editingFinished();
+    emit Vsp->editingFinished();
 }
 
 // *************************************************************************************************
@@ -625,7 +624,7 @@ bool DCBoffset::SetValues(QString strVals)
     if(resList.count() < 2) return false;
     Voff->setText(resList[1]);
     Voff->setModified(true);
-    Voff->editingFinished();
+    emit Voff->editingFinished();
     return true;
 }
 
@@ -647,7 +646,7 @@ QString DCBoffset::ProcessCommand(QString cmd)
     {
        Voff->setText(resList[1]);
        Voff->setModified(true);
-       Voff->editingFinished();
+       emit Voff->editingFinished();
        return "";
     }
     return "?";
@@ -740,8 +739,8 @@ bool DCBenable::SetValues(QString strVals)
     }
     if(resList[1].contains("ON")) DCBena->setChecked(true);
     else DCBena->setChecked(false);
-    if(resList[1].contains("ON")) DCBena->stateChanged(1);
-    else  DCBena->stateChanged(0);
+    if(resList[1].contains("ON")) emit DCBena->stateChanged(1);
+    else  emit DCBena->stateChanged(0);
     return true;
 }
 
@@ -768,8 +767,8 @@ QString DCBenable::ProcessCommand(QString cmd)
        if(resList[1] == "ON") DCBena->setChecked(true);
        else if(resList[1] == "OFF") DCBena->setChecked(false);
        else return "?";
-       if(resList[1] == "ON") DCBena->stateChanged(1);
-       else  DCBena->stateChanged(0);
+       if(resList[1] == "ON") emit DCBena->stateChanged(1);
+       else  emit DCBena->stateChanged(0);
        return "";
     }
     return "?";
@@ -804,7 +803,7 @@ void DCBenable::Shutdown(void)
     isShutdown = true;
     activeEnableState = DCBena->checkState();
     DCBena->setChecked(false);
-    DCBena->stateChanged(0);
+    emit DCBena->stateChanged(0);
 }
 
 void DCBenable::Restore(void)
@@ -812,5 +811,5 @@ void DCBenable::Restore(void)
     if(!isShutdown) return;
     isShutdown = false;
     DCBena->setChecked(activeEnableState);
-    DCBena->stateChanged(0);
+    emit DCBena->stateChanged(0);
 }

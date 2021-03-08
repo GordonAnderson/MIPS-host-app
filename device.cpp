@@ -69,6 +69,7 @@ void Device::LoadDeviceConfig(void)
                 if(resList[1] == "9600") serial->setBaudRate(QSerialPort::Baud9600);
                 else if(resList[1] == "19200") serial->setBaudRate(QSerialPort::Baud19200);
                 else if(resList[1] == "38400") serial->setBaudRate(QSerialPort::Baud38400);
+                else if(resList[1] == "57600") serial->setBaudRate(QSerialPort::Baud57600);
                 else if(resList[1] == "115200") serial->setBaudRate(QSerialPort::Baud115200);
 
                 if(resList[2] == "5") serial->setDataBits(QSerialPort::Data5);
@@ -169,6 +170,11 @@ QString Device::ProcessCommand(QString cmd)
     if(cmd == title)
     {
         return leDevice->text();
+    }
+    if(cmd == title + ".Update")
+    {
+        Update();
+        return "";
     }
     return "?";
 }

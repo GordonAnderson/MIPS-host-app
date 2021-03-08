@@ -1,0 +1,13 @@
+# Timing sequence, Mon Mar 30 10:29:44 2020
+TGevent,Timing generation,Fill time,3,Trap time.Start+Release time.Width-Fill time.Width,24,25,-25
+TGevent,Timing generation,Trap time,,Inject time-Trap time.Width,0,1,0
+TGevent,Timing generation,Release time,B,Inject time,5,0,1
+TGevent,Timing generation,Inject time,,0,0,0,0
+TGframe,Timing generation,0,1550,50,A
+TGclock,Timing generation,Ext
+TGtrigger,Timing generation,Software
+TGmux,Timing generation,5 Bit
+TGtable,Timing generation,STBLDAT;0:[A:51,0:A:1,181:3:25,200:B:0,205:3:-25:B:1,331:3:25,350:B:0,355:3:-25:B:1,431:3:25,450:B:0,455:3:-25:B:1,481:3:25,500:B:0,505:3:-25:B:1,631:3:25,650:B:0,655:3:-25:B:1,681:3:25,700:B:0,705:3:-25:B:1,731:3:25,750:B:0,755:3:-25:B:1,781:3:25,800:B:0,805:3:-25:B:1,831:3:25,850:B:0,855:3:-25:B:1,1031:3:25,1050:B:0,1055:3:-25:B:1,1081:3:25,1100:B:0,1105:3:-25:B:1,1181:3:25,1200:B:0,1205:3:-25:B:1,1231:3:25,1250:B:0,1255:3:-25:B:1,1281:3:25,1300:B:0,1305:3:-25:B:1,1381:3:25,1400:B:0,1405:3:-25:B:1,1481:3:25,1500:B:0,1505:3:-25:B:1,1550:A:0:];
+ExtClock,Timing generation,6135
+TimeMode,Timing generation,FALSE
+

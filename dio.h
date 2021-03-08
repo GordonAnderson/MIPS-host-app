@@ -60,11 +60,12 @@ public:
     QString MIPSnm;
     QString Channel;
     Comms   *comms;
+    bool    ReadOnly;
 private:
     QFrame      *frmDIO;
     QCheckBox   *DIO;
 private slots:
-    void DIOChange(void);
+    void DIOChange(bool);
 };
 
 #endif // DIO_H

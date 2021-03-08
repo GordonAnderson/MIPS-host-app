@@ -559,8 +559,9 @@ void Plot::slotHeatMap(void)
        ui->HeatMap1->xAxis->setLabel(ui->Graph->xAxis->label());
        if(Scan.isEmpty()) ui->HeatMap1->yAxis->setLabel("Scan");
        else ui->HeatMap1->yAxis->setLabel(Scan.split(",")[0]);
-       ui->HeatMap1->xAxis->axisRect()->setRangeDrag(false);
-       ui->HeatMap1->xAxis->axisRect()->setRangeZoom(false);
+       // Arg was false, changed for Qt 5.9
+       ui->HeatMap1->xAxis->axisRect()->setRangeDrag(Qt::Horizontal);
+       ui->HeatMap1->xAxis->axisRect()->setRangeZoom(Qt::Horizontal);
 
        if(plotGraphs.isEmpty()) return;
        // set up the QCPColorMap:
@@ -637,8 +638,9 @@ void Plot::slotHeatMap(void)
        ui->HeatMap2->xAxis->setLabel(ui->Graph->xAxis->label());
        if(Scan.isEmpty()) ui->HeatMap2->yAxis->setLabel("Scan");
        else ui->HeatMap2->yAxis->setLabel(Scan.split(",")[0]);
-       ui->HeatMap2->xAxis->axisRect()->setRangeDrag(false);
-       ui->HeatMap2->xAxis->axisRect()->setRangeZoom(false);
+       // Changed for Qt version 5.9
+       ui->HeatMap2->xAxis->axisRect()->setRangeDrag(Qt::Horizontal);
+       ui->HeatMap2->xAxis->axisRect()->setRangeZoom(Qt::Horizontal);
 
        // set up the QCPColorMap:
        nx = plotGraphs[0]->Vec.count();

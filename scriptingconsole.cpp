@@ -215,22 +215,25 @@ void ScriptButton::ButtonPressed(bool AlwaysLoad)
     {
         if(properties != NULL) properties->Log("Script loaded: " + FileName);
         busy = true;
-        QApplication::setOverrideCursor(Qt::WaitCursor);
+        if(AlwaysLoad) QApplication::setOverrideCursor(Qt::WaitCursor);
         QApplication::processEvents();
         QScriptValue result = engine->evaluate(ScriptText);
-        if(result.isError())
+        if(AlwaysLoad)
         {
-            if(properties != NULL) properties->Log("Script error: " + result.toString());
-            if(sb != NULL) sb->showMessage("Script error: " + result.toString());
-        }
-        else
-        {
-            if(properties != NULL) properties->Log("Script finished!");
-            if(sb != NULL) sb->showMessage("Script finished!");
+            if(result.isError())
+            {
+                if(properties != NULL) properties->Log("Script error: " + result.toString());
+                if(sb != NULL) sb->showMessage("Script error: " + result.toString());
+            }
+            else
+            {
+                if(properties != NULL) properties->Log("Script finished!");
+                if(sb != NULL) sb->showMessage("Script finished!");
+            }
         }
     }
     busy = false;
-    QApplication::restoreOverrideCursor();
+    if(AlwaysLoad) QApplication::restoreOverrideCursor();
 }
 
 QString ScriptButton::ProcessCommand(QString cmd)

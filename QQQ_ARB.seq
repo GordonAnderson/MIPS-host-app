@@ -1,0 +1,12 @@
+# Timing sequence, Tue Apr 14 19:55:09 2020
+TGevent,MIPS-B TG,GateUp,B,48,2,1,0
+TGevent,MIPS-B TG,GateDwn,C,23,2,1,0
+TGevent,MIPS-B TG,OBAsw,A,0,25,1,0
+TGframe,MIPS-B TG,0,50,5,
+TGclock,MIPS-B TG,2625000
+TGtrigger,MIPS-B TG,Pos
+TGmux,MIPS-B TG,None
+TGtable,MIPS-B TG,STBLDAT;0:[A:5,0:A:1,60375:C:1,65625:C:0:A:0,126000:B:1,131250:B:0:];
+ExtClock,MIPS-B TG,6135
+TimeMode,MIPS-B TG,TRUE
+

@@ -33,6 +33,7 @@ class AcquireData : public QWidget
     Q_OBJECT
 signals:
     void dataAcquired(QString filePath);
+    void dataFileDefined(QString filePath);
 public:
     AcquireData(QWidget *parent = 0);
     void        StartAcquire(QString path, int FrameSize, int Accumulations);
@@ -48,6 +49,8 @@ public:
     bool        Acquiring;
     QString     Acquire;
     Properties  *properties;
+    int         LastFrameSize;
+    int         LastAccumulations;
 
 private:
     cmdlineapp   *cla;
@@ -121,6 +124,7 @@ public:
     QPushButton   *Trigger;
     QPushButton   *Abort;
     Properties    *properties;
+    int           FrameCtAdj;
 
 public slots:
     void slotEventChange(void);
@@ -137,6 +141,7 @@ class TimingControl : public QWidget
     Q_OBJECT
 signals:
     void dataAcquired(QString filePath);
+    void dataFileDefined(QString filePath);
 public:
     TimingControl(QWidget *parent, QString name, QString MIPSname, int x, int y);
     void              Show(void);
@@ -157,6 +162,8 @@ public:
     bool              Acquiring;
     Properties       *properties;
     bool              Downloading;
+    bool              AlwaysGenerate;
+    int               FrameCtAdj;
 
 private:
     QGroupBox        *gbTC;
@@ -170,6 +177,7 @@ public slots:
     void pbTrigger(void);
     void pbAbort(void);
     void slotDataAcquired(QString);
+    void slotDataFileDefined(QString);
     void slotEventChanged(QString, QString);
 };
 

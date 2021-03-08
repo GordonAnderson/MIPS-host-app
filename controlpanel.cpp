@@ -108,10 +108,12 @@ ControlPanel::ControlPanel(QWidget *parent, QString CPfileName, QList<Comms*> S,
     Systems = S;
 
     // Init a number of variables
+    SerialWatchDog = 0;
     HelpFile.clear();
     LoadedConfig = false;
     mc        = NULL;
     IFT       = NULL;
+    shutterTG = NULL;
     DCBgroups = NULL;
     statusBar = NULL;
     ARBcompressorButton.clear();
@@ -165,6 +167,8 @@ ControlPanel::ControlPanel(QWidget *parent, QString CPfileName, QList<Comms*> S,
     // Open UDP socket to send commands to reader app
     udpSocket = new QUdpSocket(this);
     udpSocket->bind(QHostAddress("127.0.0.1"), 7755);
+    QString mess = "Loading control panel, "+ ControlPanelFile;
+    udpSocket->writeDatagram(mess.toLocal8Bit(),QHostAddress("127.0.0.1"), 7755);
     // Read the configuration file and create the form as
     // well as all the controls.
     ui->lblBackground->setObjectName("");
@@ -178,6 +182,7 @@ ControlPanel::ControlPanel(QWidget *parent, QString CPfileName, QList<Comms*> S,
             line = stream.readLine();
             if(line.trimmed().startsWith("#")) continue;
             resList = line.split(",");
+            if((resList[0].toUpper() == "SERIALWATCHDOG") && (resList.length()==2)) SerialWatchDog = resList[1].toInt();
             if((resList[0].toUpper() == "SIZE") && (resList.length()==3))
             {
                 this->setFixedSize(resList[1].toInt(),resList[2].toInt());
@@ -230,6 +235,8 @@ ControlPanel::ControlPanel(QWidget *parent, QString CPfileName, QList<Comms*> S,
                 if(resList.length()>=8)  ADCchans.last()->b = resList[7].toFloat();
                 if(resList.length()>=9)  ADCchans.last()->Units = resList[8];
                 if(resList.length()>=10) ADCchans.last()->Format = resList[9];
+                if(resList.length()>=11) ADCchans.last()->U = resList[10].toFloat();
+                if(resList.length()>=12) ADCchans.last()->LLimit = resList[11].trimmed();
                 ADCchans.last()->Show();
             }
             if((resList[0].toUpper() == "DACCHANNEL") && (resList.length()>=6))
@@ -286,12 +293,17 @@ ControlPanel::ControlPanel(QWidget *parent, QString CPfileName, QList<Comms*> S,
                 DCBenables.last()->comms = FindCommPort(resList[2],Systems);
                 DCBenables.last()->Show();
             }
-            if((resList[0].toUpper() == "DIOCHANNEL") && (resList.length()==6))
+            if((resList[0].toUpper() == "DIOCHANNEL") && (resList.length()>=6))
             {
                 DIOchannels.append(new DIOchannel(Container,resList[1],resList[2],resList[4].toInt(),resList[5].toInt()));
                 DIOchannels.last()->Channel = resList[3];
                 DIOchannels.last()->comms = FindCommPort(resList[2],Systems);
                 DIOchannels.last()->Show();
+                if(resList.length() >= 7)
+                {
+                    if(resList[6].toUpper().trimmed() == "TRUE") DIOchannels.last()->ReadOnly=true;
+                    if(resList[6].toUpper().trimmed() == "FALSE") DIOchannels.last()->ReadOnly=false;
+                }
             }
             if((resList[0].toUpper() == "ESICHANNEL") && (resList.length()==6))
             {
@@ -325,7 +337,7 @@ ControlPanel::ControlPanel(QWidget *parent, QString CPfileName, QList<Comms*> S,
             if((resList[0].toUpper() == "CALLONUPDATE") && (resList.length()==2))
             {
                if(ScripButtons.count() >= 1)
-                  if(resList[0].toUpper().trimmed() == "TRUE") ScripButtons.last()->CallOnUpdate = true;
+                  if(resList[1].toUpper().trimmed() == "TRUE") ScripButtons.last()->CallOnUpdate = true;
             }
             // GroupBox,name,width,hieght,X,Y  // Command to start group
             // GroupBoxEnd                     // Signals end of group box
@@ -346,6 +358,22 @@ ControlPanel::ControlPanel(QWidget *parent, QString CPfileName, QList<Comms*> S,
                 TC.last()->properties = properties;
                 TC.last()->Show();
                 connect(TC.last(),SIGNAL(dataAcquired(QString)),this,SLOT(slotDataAcquired(QString)));
+                connect(TC.last(),SIGNAL(dataFileDefined(QString)),this,SLOT(slotDataFileDefined(QString)));
+            }
+            if((resList[0].toUpper() == "FRAMECNTADJ") && (resList.length()==2))
+            {
+                if(TC.count() > 0)
+                {
+                    TC.last()->FrameCtAdj = resList[1].toInt();
+                    TC.last()->TG->FrameCtAdj = resList[1].toInt();
+                }
+            }
+            if((resList[0].toUpper() == "ALWAYSGENERATE") && (resList.length()==2))
+            {
+                if((resList[1].toUpper() == "YES"))
+                {
+                    if(TC.count() > 0) TC.last()->AlwaysGenerate = true;
+                }
             }
             if((resList[0].toUpper() == "EVENTCONTROL") && (resList.length()==5))
             {
@@ -354,6 +382,17 @@ ControlPanel::ControlPanel(QWidget *parent, QString CPfileName, QList<Comms*> S,
                 connect(TC.last()->TG->EC.last(),SIGNAL(EventChanged(QString,QString)),TC.last(),SLOT(slotEventChanged(QString,QString)));
             }
             if((resList[0].toUpper() == "FILENAME") && (resList.length()==2)) if(TC.count() > 0) TC.last()->fileName = resList[1];
+            if((resList[0].toUpper() == "SHUTTERTG") && (resList.length()==5))
+            {
+                shutterTG = new ShutterTG(Container,resList[1],resList[2]);
+                shutterTG->comms = FindCommPort(resList[2],Systems);
+                shutterTG->sb = statusBar;
+                QWidget *widget = new QWidget(this);
+                widget->setGeometry(resList[3].toInt(),resList[4].toInt(),840,530);
+                QVBoxLayout *layout = new QVBoxLayout(widget);
+                layout->addWidget(shutterTG);
+                shutterTG->show();
+            }
             if((resList[0].toUpper() == "IFT") && (resList.length()==5))
             {
                 IFT = new IFTtiming(Container,resList[1],resList[2],resList[3].toInt(),resList[4].toInt());
@@ -503,10 +542,29 @@ ControlPanel::ControlPanel(QWidget *parent, QString CPfileName, QList<Comms*> S,
     connect(OpenLogFile, SIGNAL(triggered()), this, SLOT(slotOpenLogFile()));
     CloseLogFile = new QAction("Close data log", this);
     connect(CloseLogFile, SIGNAL(triggered()), this, SLOT(slotCloseLogFile()));
+    if(SerialWatchDog > 0)
+    {
+        if(properties != NULL) properties->Log("Enabling serial watch dog on MIPS system(s)");
+        for(int i=0;i<Systems.count();i++)
+        {
+           Systems[i]->SendCommand("SSERWD," + QString::number(SerialWatchDog) + "\n");
+        }
+    }
 }
 
 ControlPanel::~ControlPanel()
 {
+    // Press the on edit button to run the exit script
+    Command("On exit");
+    //
+    if(SerialWatchDog > 0)
+    {
+        if(properties != NULL) properties->Log("Disabling serial watch dog on MIPS system(s)");
+        for(int i=0;i<Systems.count();i++)
+        {
+           Systems[i]->SendCommand("SSERWD,0\n");
+        }
+    }
     if(properties != NULL) properties->Log("Control panel unloading");
     for(int i=0;i<devices.count();i++) delete devices[i];
     for(int i=0;i<Cpanels.count();i++) delete Cpanels[i]->cp;
@@ -572,7 +630,7 @@ void ControlPanel::slotScriptHelp(void)
 
 void ControlPanel::slotThisControlPanelHelp(void)
 {
-    qDebug() << HelpFile;
+    //qDebug() << HelpFile;
     help->SetTitle("This Control panel help");
     help->LoadHelpText(HelpFile);
     help->show();
@@ -732,6 +790,15 @@ void ControlPanel::Update(void)
    QMessageBox msgBox;
    int i,j,k;
 
+   // If the watch dog is enabled send a \n to MIPS to keep them
+   // alive.
+   if(SerialWatchDog > 0)
+   {
+       for(i=0;i<Systems.count();i++)
+       {
+          Systems[i]->SendString("\n");
+       }
+   }
    if(tcp != NULL) if(tcp->bytesAvailable() > 0) tcp->readData();
    QApplication::processEvents();
    if(scriptconsole!=NULL) scriptconsole->UpdateStatus();
@@ -1058,6 +1125,12 @@ QString ControlPanel::Save(QString Filename)
             stream << "IFT parameters\n";
             stream << IFT->Report() + "\n";
         }
+        if(shutterTG != NULL)
+        {
+            stream << "Shutter parameters\n";
+            stream << shutterTG->Report() + "\n";
+            stream << "End Shutter parameters\n";
+        }
         if(TC.count() > 0)
         {
             stream << "Timing control parameters\n";
@@ -1198,6 +1271,16 @@ QString ControlPanel::Load(QString Filename)
                         }
                     }
                 }
+                if(resList[0] == "Shutter parameters")
+                {
+                    while(true)
+                    {
+                        line = stream.readLine();
+                        if(line.isNull()) break;
+                        if(line.contains("End Shutter parameters")) break;
+                        shutterTG->SetValues(line);
+                    }
+                }
                 if(resList[0] == "Compression parameters")
                 {
                     while(true)
@@ -1228,6 +1311,12 @@ void ControlPanel::slotDataAcquired(QString filepath)
         QString mess = "Load,"+filepath+"/U1084A.data";
         udpSocket->writeDatagram(mess.toLocal8Bit(),QHostAddress("127.0.0.1"), 7755);
     }
+}
+
+void ControlPanel::slotDataFileDefined(QString filepath)
+{
+    QString mess = "Data file defined,"+filepath;
+    udpSocket->writeDatagram(mess.toLocal8Bit(),QHostAddress("127.0.0.1"), 7755);
 }
 
 // System shutdown

@@ -57,9 +57,10 @@ public:
     QString MIPSnm;
     int     Channel;
     Comms   *comms;
-    float   b,m;
+    float   b,m,U;
     QString Units;
     QString Format;
+    QString LLimit;
 private:
     QFrame      *frmADC;
     QLineEdit   *Vadc;

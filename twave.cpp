@@ -54,7 +54,6 @@ Twave::Twave(Ui::MIPS *w, Comms *c)
 bool Twave::myEventFilter(QObject *obj, QEvent *event)
 {
     QLineEdit *le;
-    QString res;
     float delta = 0;
 
    if (obj->objectName().startsWith("leSTW") && (event->type() == QEvent::KeyPress))
@@ -80,7 +79,7 @@ bool Twave::myEventFilter(QObject *obj, QEvent *event)
           else myString.sprintf("%1.0f", le->text().toFloat() + delta);
           le->setText(myString);
           le->setModified(true);
-          le->editingFinished();
+          emit le->editingFinished();
           return true;
        }
    }

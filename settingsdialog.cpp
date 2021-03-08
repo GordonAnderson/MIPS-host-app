@@ -182,15 +182,21 @@ void SettingsDialog::fillPortsInfo()
         description = info.description();
         manufacturer = info.manufacturer();
         serialNumber = info.serialNumber();
-        list << info.portName()
-             << (!description.isEmpty() ? description : blankString)
-             << (!manufacturer.isEmpty() ? manufacturer : blankString)
-             << (!serialNumber.isEmpty() ? serialNumber : blankString)
-             << info.systemLocation()
-             << (info.vendorIdentifier() ? QString::number(info.vendorIdentifier(), 16) : blankString)
-             << (info.productIdentifier() ? QString::number(info.productIdentifier(), 16) : blankString);
+        QString pname = info.portName();
+        if(pname.startsWith("tty.")) pname.clear();
+        if(pname.startsWith("cu.")) pname = pname.mid(3);
+        if(!pname.isEmpty())
+        {
+            list << pname
+                << (!description.isEmpty() ? description : blankString)
+                << (!manufacturer.isEmpty() ? manufacturer : blankString)
+                << (!serialNumber.isEmpty() ? serialNumber : blankString)
+                << info.systemLocation()
+                 << (info.vendorIdentifier() ? QString::number(info.vendorIdentifier(), 16) : blankString)
+                << (info.productIdentifier() ? QString::number(info.productIdentifier(), 16) : blankString);
 
-        ui->serialPortInfoListBox->addItem(list.first(), list);
+            ui->serialPortInfoListBox->addItem(list.first(), list);
+        }
     }
 
     ui->serialPortInfoListBox->addItem(tr("Custom"));

@@ -17,8 +17,8 @@
    <widget class="QTabWidget" name="tabMIPS">
     <property name="geometry">
      <rect>
-      <x>0</x>
-      <y>0</y>
+      <x>-5</x>
+      <y>15</y>
       <width>796</width>
       <height>586</height>
      </rect>
@@ -6127,9 +6127,9 @@ enabled</string>
       <property name="geometry">
        <rect>
         <x>50</x>
-        <y>20</y>
+        <y>0</y>
         <width>331</width>
-        <height>241</height>
+        <height>306</height>
        </rect>
       </property>
       <property name="title">
@@ -6298,14 +6298,66 @@ enabled</string>
         <string>Lock</string>
        </property>
       </widget>
+      <widget class="QPushButton" name="pbFAIMSautoTune">
+       <property name="geometry">
+        <rect>
+         <x>15</x>
+         <y>235</y>
+         <width>146</width>
+         <height>32</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Auto Tune</string>
+       </property>
+      </widget>
+      <widget class="QPushButton" name="pbFAIMSautoTuneAbort">
+       <property name="geometry">
+        <rect>
+         <x>175</x>
+         <y>235</y>
+         <width>146</width>
+         <height>32</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Auto Tune Abort</string>
+       </property>
+      </widget>
+      <widget class="QLabel" name="label_221">
+       <property name="geometry">
+        <rect>
+         <x>20</x>
+         <y>270</y>
+         <width>121</width>
+         <height>16</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Auto tune state</string>
+       </property>
+      </widget>
+      <widget class="QLineEdit" name="leGFMTSTAT">
+       <property name="geometry">
+        <rect>
+         <x>200</x>
+         <y>270</y>
+         <width>113</width>
+         <height>21</height>
+        </rect>
+       </property>
+       <property name="readOnly">
+        <bool>true</bool>
+       </property>
+      </widget>
      </widget>
      <widget class="QGroupBox" name="gbFAIMS_DC">
       <property name="geometry">
        <rect>
         <x>50</x>
-        <y>300</y>
+        <y>315</y>
         <width>331</width>
-        <height>141</height>
+        <height>151</height>
        </rect>
       </property>
       <property name="title">
@@ -6338,7 +6390,7 @@ enabled</string>
        <property name="geometry">
         <rect>
          <x>20</x>
-         <y>70</y>
+         <y>65</y>
          <width>59</width>
          <height>16</height>
         </rect>
@@ -6351,7 +6403,7 @@ enabled</string>
        <property name="geometry">
         <rect>
          <x>20</x>
-         <y>100</y>
+         <y>90</y>
          <width>71</width>
          <height>16</height>
         </rect>
@@ -6403,7 +6455,7 @@ enabled</string>
        <property name="geometry">
         <rect>
          <x>230</x>
-         <y>70</y>
+         <y>65</y>
          <width>80</width>
          <height>21</height>
         </rect>
@@ -6416,7 +6468,7 @@ enabled</string>
        <property name="geometry">
         <rect>
          <x>120</x>
-         <y>70</y>
+         <y>65</y>
          <width>80</width>
          <height>21</height>
         </rect>
@@ -6426,7 +6478,7 @@ enabled</string>
        <property name="geometry">
         <rect>
          <x>230</x>
-         <y>100</y>
+         <y>90</y>
          <width>80</width>
          <height>21</height>
         </rect>
@@ -6439,10 +6491,46 @@ enabled</string>
        <property name="geometry">
         <rect>
          <x>120</x>
-         <y>100</y>
+         <y>90</y>
          <width>80</width>
          <height>21</height>
         </rect>
+       </property>
+      </widget>
+      <widget class="QLabel" name="label_220">
+       <property name="geometry">
+        <rect>
+         <x>20</x>
+         <y>115</y>
+         <width>71</width>
+         <height>16</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Curtain V</string>
+       </property>
+      </widget>
+      <widget class="QLineEdit" name="leSHV_1">
+       <property name="geometry">
+        <rect>
+         <x>120</x>
+         <y>115</y>
+         <width>80</width>
+         <height>21</height>
+        </rect>
+       </property>
+      </widget>
+      <widget class="QLineEdit" name="leGHVV_1">
+       <property name="geometry">
+        <rect>
+         <x>230</x>
+         <y>115</y>
+         <width>80</width>
+         <height>21</height>
+        </rect>
+       </property>
+       <property name="readOnly">
+        <bool>true</bool>
        </property>
       </widget>
      </widget>
@@ -7165,7 +7253,7 @@ enabled</string>
       <property name="geometry">
        <rect>
         <x>70</x>
-        <y>500</y>
+        <y>515</y>
         <width>331</width>
         <height>21</height>
        </rect>
@@ -7175,7 +7263,7 @@ enabled</string>
       <property name="geometry">
        <rect>
         <x>10</x>
-        <y>500</y>
+        <y>515</y>
         <width>59</width>
         <height>16</height>
        </rect>
@@ -7188,7 +7276,7 @@ enabled</string>
       <property name="geometry">
        <rect>
         <x>10</x>
-        <y>455</y>
+        <y>475</y>
         <width>161</width>
         <height>32</height>
        </rect>

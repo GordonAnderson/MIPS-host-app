@@ -1,0 +1,12 @@
+# 9103-picoammeter, rdb
+# Example use in config file:
+#Device,Ii,(path)9103.device,A,400,400
+Port,COM1
+Setting,57600,8,n,1
+EOL,CR,LF
+Init
+End Init
+Read command,S
+Scan format,*1c%f
+M,1
+B,0
