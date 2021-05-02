@@ -29,6 +29,7 @@ public:
     bool GetNextTarget(float et);
     void Save(QString Filename);
     void Load(QString Filename);
+    void SetVersionOptions(void);
     int getHeaderIndex(QString Name);
     QString getCSVtoken(QString Name, int index);
     void Log(QString Message);
@@ -67,6 +68,9 @@ private slots:
     void slotStepTrigOut(void);
     void slotFAIMSautoTune(void);
     void slotFAIMSautoTuneAbort(void);
+    void slotFAIMSCurtianEna(void);
+    void slotFAIMSCurtianInd(void);
+    void slotFAIMSnegTune(void);
 };
 
 #endif // FAIMS_H

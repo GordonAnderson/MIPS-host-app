@@ -7,14 +7,17 @@ Comms::Comms(SettingsDialog *settings, QString Host, QStatusBar *statusbar)
     sb = statusbar;
     client_connected = false;
     host = Host;
+    properties = NULL;
     serial = new QSerialPort(this);
     keepAliveTimer = new QTimer;
+    reconnectTimer = new QTimer;
     connect(&client, SIGNAL(readyRead()), this, SLOT(readData2RingBuffer()));
     connect(serial, SIGNAL(readyRead()), this, SLOT(readData2RingBuffer()));
     connect(&client, SIGNAL(connected()),this, SLOT(connected()));
     connect(&client, SIGNAL(disconnected()),this, SLOT(disconnected()));
     connect(&client, SIGNAL(aboutToClose()),this, SLOT(slotAboutToClose()));
     connect(keepAliveTimer, SIGNAL(timeout()), this, SLOT(slotKeepAlive()));
+    connect(reconnectTimer, SIGNAL(timeout()), this, SLOT(slotReconnect()));
 }
 
 char Comms::getchar(void)
@@ -643,11 +646,42 @@ QString Comms::SendMess(QString message)
     return SendMessage(message);
 }
 
+// This function is called after a connection to MIPS is established. The function
+// reads the MIPS name, its version and optionally sets the MIPS time and date based
+// on version number.
+void Comms::GetMIPSnameAndVersion(void)
+{
+    MIPSname = SendMessage("GNAME\n");
+    // Get the version string
+    QStringList reslist = SendMessage("GVER\n").split(" ");
+    major = minor = 1;
+    if(reslist.count() > 2)
+    {
+        QStringList verlist = reslist[1].split(".");
+        if(verlist.count() == 2)
+        {
+            major = verlist[0].toInt();
+            bool ok;
+            for(int i=5;i>0;i--)
+            {
+                minor = verlist[1].left(i).toInt(&ok);
+                if(ok) break;
+            }
+        }
+    }
+    if((major == 1) && (minor >= 201))
+    {
+        QString str = QDateTime::currentDateTime().time().toString();
+        SendCommand("STIME," + str + "\n");
+        str = QDateTime::currentDateTime().date().toString("dd/MM/yyyy");
+        SendCommand("SDATE," + str + "\n");
+    }
+}
+
 // Open connection to MIPS and read its name.
 bool Comms::ConnectToMIPS()
 {
     QTime timer;
-    QString res;
 
     MIPSname = "";
     if(client.isOpen() || serial->isOpen()) return true;
@@ -665,7 +699,7 @@ bool Comms::ConnectToMIPS()
            if(client_connected)
            {
                keepAliveTimer->start(600000);
-               MIPSname = SendMessage("GNAME\n");
+               GetMIPSnameAndVersion();
                return true;
            }
        }
@@ -678,7 +712,7 @@ bool Comms::ConnectToMIPS()
     {
        openSerialPort();
        serial->setDataTerminalReady(true);
-       MIPSname = SendMessage("GNAME\n");
+       GetMIPSnameAndVersion();
     }
     return true;
 }
@@ -689,6 +723,7 @@ void Comms::DisconnectFromMIPS()
     {
        client.close();
        keepAliveTimer->stop();
+       reconnectTimer->stop();
     }
     closeSerialPort();
 }
@@ -872,14 +907,18 @@ void Comms::handleError(QSerialPort::SerialPortError error)
 {
     if (error == QSerialPort::ResourceError)
     {
-//        qDebug() << "serial port error";
         QThread::sleep(1);
-//        reopenSerialPort();
-//        return;
-//        QMessageBox::critical(this, tr("Critical Error"), serial->errorString());
         closeSerialPort();
         if(!MIPSname.isEmpty()) sb->showMessage(MIPSname + tr(" Critical Error, port closing: ") + serial->errorString());
         else sb->showMessage(tr("Critical Error, port closing: ") + serial->errorString());
+        if(properties != NULL)
+        {
+            if(properties->AutoRestore)
+            {
+                reconnectTimer->setInterval(2000);
+                reconnectTimer->start();
+            }
+        }
     }
 }
 
@@ -973,4 +1012,20 @@ void Comms::slotAboutToClose(void)
 void Comms::slotKeepAlive(void)
 {
    SendString("\n");
+}
+
+void Comms::slotReconnect(void)
+{
+    if(!serial->isOpen())
+    {
+        serial->open(QIODevice::ReadWrite);
+        serial->setDataTerminalReady(true);
+        connect(serial, SIGNAL(error(QSerialPort::SerialPortError)), this,SLOT(handleError(QSerialPort::SerialPortError)));
+    }
+    if(serial->isOpen())
+    {
+        reconnectTimer->stop();
+        if(!MIPSname.isEmpty()) sb->showMessage(MIPSname + tr(" Serial port reconnected!"));
+        else sb->showMessage(tr("Serial port reconnected!"));
+    }
 }

@@ -333,6 +333,12 @@
 //          allows you to restart.
 // 1.84, Feb 28, 2021
 //      1.) Updated FAIMS to include auto tune options and curtain supply control.
+// 1.85, May 2, 2021
+//      1.) Added auto reconnect to the app when not running control panel
+//      2.) Read the version from MIPS and save it in comms object major.minor
+//      3.) Updated the FAIMS tab to read use the MIPS version to enable and
+//          disable options.
+//      4.) Added options for negative peak tune, and curtian supply options
 //
 // Planded updates:
 //      - Add ploting capability. Also support this through the Scripting system.
@@ -380,7 +386,7 @@
 #include <QtNetwork/QTcpSocket>
 #include <QInputDialog>
 
-QString Version = "MIPS, Version 1.84 Feb 28, 2021";
+QString Version = "MIPS, Version 1.85 May 2, 2021";
 
 MIPS::MIPS(QWidget *parent) :
     QMainWindow(parent),
@@ -1004,6 +1010,7 @@ void MIPS::MIPSsetup(void)
 void MIPS::MIPSconnect(void)
 {
     comms->p = settings->settings();
+    comms->properties = properties;
     comms->host = ui->comboMIPSnetNames->currentText();
     if(comms->ConnectToMIPS())
     {
@@ -1064,6 +1071,7 @@ void MIPS::FindAllMIPSsystems(void)
           ui->statusBar->showMessage("Trying: " + settings->getPortName(j));
           QCoreApplication::processEvents(QEventLoop::AllEvents, 100);
           cp = new Comms(settings,"",ui->statusBar);
+          cp->properties = properties;
           if(cp->isMIPS(settings->getPortName(j)))
           {
             delay();
@@ -1553,7 +1561,8 @@ void MIPS::ARBupload(void)
 void MIPS::CloseControlPanel(void)
 {
     cp_deleteRequest = true;
-    this->setWindowState(Qt::WindowMaximized);
+    //this->setWindowState(Qt::WindowMaximized);
+    this->setWindowState(Qt::WindowActive);
     ui->tabMIPS->setDisabled(false);
 }
 

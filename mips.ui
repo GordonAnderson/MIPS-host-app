@@ -721,6 +721,15 @@ Please note, the Program MIPS function will only work with a single serial conne
             </color>
            </brush>
           </colorrole>
+          <colorrole role="PlaceholderText">
+           <brush brushstyle="NoBrush">
+            <color alpha="128">
+             <red>0</red>
+             <green>0</green>
+             <blue>0</blue>
+            </color>
+           </brush>
+          </colorrole>
          </active>
          <inactive>
           <colorrole role="WindowText">
@@ -741,6 +750,15 @@ Please note, the Program MIPS function will only work with a single serial conne
             </color>
            </brush>
           </colorrole>
+          <colorrole role="PlaceholderText">
+           <brush brushstyle="NoBrush">
+            <color alpha="128">
+             <red>0</red>
+             <green>0</green>
+             <blue>0</blue>
+            </color>
+           </brush>
+          </colorrole>
          </inactive>
          <disabled>
           <colorrole role="WindowText">
@@ -755,6 +773,15 @@ Please note, the Program MIPS function will only work with a single serial conne
           <colorrole role="Text">
            <brush brushstyle="SolidPattern">
             <color alpha="255">
+             <red>0</red>
+             <green>0</green>
+             <blue>0</blue>
+            </color>
+           </brush>
+          </colorrole>
+          <colorrole role="PlaceholderText">
+           <brush brushstyle="NoBrush">
+            <color alpha="128">
              <red>0</red>
              <green>0</green>
              <blue>0</blue>
@@ -1152,6 +1179,15 @@ Please note, the Program MIPS function will only work with a single serial conne
             </color>
            </brush>
           </colorrole>
+          <colorrole role="PlaceholderText">
+           <brush brushstyle="NoBrush">
+            <color alpha="128">
+             <red>0</red>
+             <green>0</green>
+             <blue>0</blue>
+            </color>
+           </brush>
+          </colorrole>
          </active>
          <inactive>
           <colorrole role="WindowText">
@@ -1199,6 +1235,15 @@ Please note, the Program MIPS function will only work with a single serial conne
             </color>
            </brush>
           </colorrole>
+          <colorrole role="PlaceholderText">
+           <brush brushstyle="NoBrush">
+            <color alpha="128">
+             <red>0</red>
+             <green>0</green>
+             <blue>0</blue>
+            </color>
+           </brush>
+          </colorrole>
          </inactive>
          <disabled>
           <colorrole role="WindowText">
@@ -1240,6 +1285,15 @@ Please note, the Program MIPS function will only work with a single serial conne
           <colorrole role="HighlightedText">
            <brush brushstyle="SolidPattern">
             <color alpha="255">
+             <red>0</red>
+             <green>0</green>
+             <blue>0</blue>
+            </color>
+           </brush>
+          </colorrole>
+          <colorrole role="PlaceholderText">
+           <brush brushstyle="NoBrush">
+            <color alpha="128">
              <red>0</red>
              <green>0</green>
              <blue>0</blue>
@@ -6129,7 +6183,7 @@ enabled</string>
         <x>50</x>
         <y>0</y>
         <width>331</width>
-        <height>306</height>
+        <height>271</height>
        </rect>
       </property>
       <property name="title">
@@ -6139,7 +6193,7 @@ enabled</string>
        <property name="geometry">
         <rect>
          <x>20</x>
-         <y>30</y>
+         <y>20</y>
          <width>161</width>
          <height>20</height>
         </rect>
@@ -6152,7 +6206,7 @@ enabled</string>
        <property name="geometry">
         <rect>
          <x>200</x>
-         <y>60</y>
+         <y>50</y>
          <width>113</width>
          <height>21</height>
         </rect>
@@ -6162,7 +6216,7 @@ enabled</string>
        <property name="geometry">
         <rect>
          <x>20</x>
-         <y>60</y>
+         <y>50</y>
          <width>161</width>
          <height>16</height>
         </rect>
@@ -6175,7 +6229,7 @@ enabled</string>
        <property name="geometry">
         <rect>
          <x>20</x>
-         <y>150</y>
+         <y>120</y>
          <width>171</width>
          <height>16</height>
         </rect>
@@ -6188,7 +6242,7 @@ enabled</string>
        <property name="geometry">
         <rect>
          <x>20</x>
-         <y>180</y>
+         <y>140</y>
          <width>171</width>
          <height>16</height>
         </rect>
@@ -6201,7 +6255,7 @@ enabled</string>
        <property name="geometry">
         <rect>
          <x>20</x>
-         <y>210</y>
+         <y>160</y>
          <width>171</width>
          <height>16</height>
         </rect>
@@ -6214,7 +6268,7 @@ enabled</string>
        <property name="geometry">
         <rect>
          <x>200</x>
-         <y>150</y>
+         <y>120</y>
          <width>113</width>
          <height>21</height>
         </rect>
@@ -6227,7 +6281,7 @@ enabled</string>
        <property name="geometry">
         <rect>
          <x>200</x>
-         <y>180</y>
+         <y>140</y>
          <width>113</width>
          <height>21</height>
         </rect>
@@ -6240,7 +6294,7 @@ enabled</string>
        <property name="geometry">
         <rect>
          <x>200</x>
-         <y>210</y>
+         <y>160</y>
          <width>113</width>
          <height>21</height>
         </rect>
@@ -6253,7 +6307,7 @@ enabled</string>
        <property name="geometry">
         <rect>
          <x>200</x>
-         <y>120</y>
+         <y>100</y>
          <width>113</width>
          <height>21</height>
         </rect>
@@ -6263,7 +6317,7 @@ enabled</string>
        <property name="geometry">
         <rect>
          <x>20</x>
-         <y>120</y>
+         <y>100</y>
          <width>161</width>
          <height>16</height>
         </rect>
@@ -6276,7 +6330,7 @@ enabled</string>
        <property name="geometry">
         <rect>
          <x>20</x>
-         <y>90</y>
+         <y>70</y>
          <width>100</width>
          <height>20</height>
         </rect>
@@ -6289,7 +6343,7 @@ enabled</string>
        <property name="geometry">
         <rect>
          <x>200</x>
-         <y>90</y>
+         <y>70</y>
          <width>100</width>
          <height>20</height>
         </rect>
@@ -6302,7 +6356,7 @@ enabled</string>
        <property name="geometry">
         <rect>
          <x>15</x>
-         <y>235</y>
+         <y>190</y>
          <width>146</width>
          <height>32</height>
         </rect>
@@ -6315,7 +6369,7 @@ enabled</string>
        <property name="geometry">
         <rect>
          <x>175</x>
-         <y>235</y>
+         <y>190</y>
          <width>146</width>
          <height>32</height>
         </rect>
@@ -6324,11 +6378,11 @@ enabled</string>
         <string>Auto Tune Abort</string>
        </property>
       </widget>
-      <widget class="QLabel" name="label_221">
+      <widget class="QLabel" name="lblTuneState">
        <property name="geometry">
         <rect>
          <x>20</x>
-         <y>270</y>
+         <y>240</y>
          <width>121</width>
          <height>16</height>
         </rect>
@@ -6341,7 +6395,7 @@ enabled</string>
        <property name="geometry">
         <rect>
          <x>200</x>
-         <y>270</y>
+         <y>240</y>
          <width>113</width>
          <height>21</height>
         </rect>
@@ -6350,14 +6404,30 @@ enabled</string>
         <bool>true</bool>
        </property>
       </widget>
+      <widget class="QCheckBox" name="chkNegTune">
+       <property name="geometry">
+        <rect>
+         <x>20</x>
+         <y>220</y>
+         <width>161</width>
+         <height>20</height>
+        </rect>
+       </property>
+       <property name="toolTip">
+        <string>Check this box before selecting auto tune if you want to tune for negative DV peak.</string>
+       </property>
+       <property name="text">
+        <string>Tune for neg peak</string>
+       </property>
+      </widget>
      </widget>
      <widget class="QGroupBox" name="gbFAIMS_DC">
       <property name="geometry">
        <rect>
         <x>50</x>
-        <y>315</y>
+        <y>270</y>
         <width>331</width>
-        <height>151</height>
+        <height>191</height>
        </rect>
       </property>
       <property name="title">
@@ -6497,7 +6567,7 @@ enabled</string>
         </rect>
        </property>
       </widget>
-      <widget class="QLabel" name="label_220">
+      <widget class="QLabel" name="lblCurtianV">
        <property name="geometry">
         <rect>
          <x>20</x>
@@ -6531,6 +6601,38 @@ enabled</string>
        </property>
        <property name="readOnly">
         <bool>true</bool>
+       </property>
+      </widget>
+      <widget class="QCheckBox" name="chkCurtianIndEna">
+       <property name="geometry">
+        <rect>
+         <x>20</x>
+         <y>140</y>
+         <width>201</width>
+         <height>20</height>
+        </rect>
+       </property>
+       <property name="toolTip">
+        <string>Check this box if you do not want FAIMS enable and disable to effect the curtian supply.</string>
+       </property>
+       <property name="text">
+        <string>Curtain enable independent</string>
+       </property>
+      </widget>
+      <widget class="QCheckBox" name="chkCurtianEna">
+       <property name="geometry">
+        <rect>
+         <x>20</x>
+         <y>160</y>
+         <width>201</width>
+         <height>20</height>
+        </rect>
+       </property>
+       <property name="toolTip">
+        <string>Enable and disable the curtian supply.</string>
+       </property>
+       <property name="text">
+        <string>Curtain enable</string>
        </property>
       </widget>
      </widget>
@@ -8174,7 +8276,7 @@ number on each trigger</string>
      <x>0</x>
      <y>0</y>
      <width>797</width>
-     <height>22</height>
+     <height>24</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuAbout">

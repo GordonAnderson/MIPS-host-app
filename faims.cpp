@@ -62,6 +62,9 @@ FAIMS::FAIMS(Ui::MIPS *w, Comms *c)
        }
     }
     connect(fui->chkFMenable,SIGNAL(toggled(bool)),this,SLOT(FAIMSenable()));
+    connect(fui->chkCurtianEna,SIGNAL(toggled(bool)),this,SLOT(slotFAIMSCurtianEna()));
+    connect(fui->chkCurtianIndEna,SIGNAL(toggled(bool)),this,SLOT(slotFAIMSCurtianInd()));
+    connect(fui->chkNegTune,SIGNAL(toggled(bool)),this,SLOT(slotFAIMSnegTune()));
     connect(fui->pbFMstart,SIGNAL(pressed()),this,SLOT(FAIMSscan()));
     connect(fui->pbFMloadCSV,SIGNAL(pressed()),this,SLOT(FAIMSloadCSV()));
     connect(fui->pbFMstartLinear,SIGNAL(pressed()),this,SLOT(FAIMSstartLinearScan()));
@@ -88,10 +91,39 @@ void FAIMS::Load(QString Filename)
 
 }
 
+// This function uses the major and minor version data from the comm object to
+// enable and disable features on this interface.
+void FAIMS::SetVersionOptions(void)
+{
+    bool state = false;
+    QString res;
+
+    if(comms == NULL) return;
+    if((comms->major > 1) || (comms->minor >= 201)) state = true;
+    // Auto tune options
+    fui->pbFAIMSautoTune->setEnabled(state);
+    fui->pbFAIMSautoTuneAbort->setEnabled(state);
+    fui->chkNegTune->setEnabled(state);
+    fui->lblTuneState->setEnabled(state);
+    fui->leGFMTSTAT->setEnabled(state);
+    // MIPS command FMISCUR, returns true if curtian supply detected in system.
+    // If state is true issue FMISCUR and is reply is true the enable the
+    // curtian options.
+    res = comms->SendMess("FMISCUR\n");
+    if(res == "TRUE") state = true;
+    else state = false;
+    fui->lblCurtianV->setEnabled(state);
+    fui->leSHV_1->setEnabled(state);
+    fui->leGHVV_1->setEnabled(state);
+    fui->chkCurtianEna->setEnabled(state);
+    fui->chkCurtianIndEna->setEnabled(state);
+}
+
 void FAIMS::Update(void)
 {
     QString res;
 
+    SetVersionOptions();
     QObjectList widgetList = fui->gbFAIMS_RF->children();
     widgetList += fui->gbFAIMS_DC->children();
     if(fui->tabScanMode->tabText(fui->tabScanMode->currentIndex()) == "Linear scan") widgetList += fui->gbLinearScan->children();
@@ -100,7 +132,7 @@ void FAIMS::Update(void)
     {
        if(w->objectName().startsWith("le"))
        {
-            if(!((QLineEdit *)w)->hasFocus())
+            if((!((QLineEdit *)w)->hasFocus()) && (((QLineEdit *)w)->isEnabled()))
             {
                res = "G" + w->objectName().mid(3).replace("_",",");
                if(res.endsWith(",")) res = res.left(res.length()-1);
@@ -112,6 +144,24 @@ void FAIMS::Update(void)
     res = comms->SendMess("GFMENA\n");
     if(res == "TRUE") fui->chkFMenable->setChecked(true);
     if(res == "FALSE") fui->chkFMenable->setChecked(false);
+    if(fui->chkCurtianEna->isEnabled())
+    {
+        res = comms->SendMess("GFMENA\n");
+        if(res == "TRUE") fui->chkCurtianEna->setChecked(true);
+        if(res == "FALSE") fui->chkCurtianEna->setChecked(false);
+    }
+    if(fui->chkCurtianIndEna->isEnabled())
+    {
+        res = comms->SendMess("GHVSTATUS,1\n");
+        if(res == "ON") fui->chkCurtianIndEna->setChecked(false);
+        if(res == "OFF") fui->chkCurtianIndEna->setChecked(true);
+    }
+    if(fui->chkNegTune->isEnabled())
+    {
+        res = comms->SendMess("GFMTPOS\n");
+        if(res == "TRUE") fui->chkCurtianIndEna->setChecked(false);
+        if(res == "FALSE") fui->chkCurtianIndEna->setChecked(true);
+    }
     // Read the lock mode and update the UI
     res = comms->SendMess("GFMLOCK\n");
     if(res == "TRUE")
@@ -676,5 +726,23 @@ void FAIMS::slotFAIMSautoTuneAbort(void)
 {
     if(comms == NULL) return;
     comms->SendCommand("SFMTABRT\n");
+}
+
+void FAIMS::slotFAIMSCurtianEna(void)
+{
+    if(fui->chkCurtianEna->isChecked()) comms->SendCommand("SHVENA,1,TRUE\n");
+    else  comms->SendCommand("SHVENA,1,FALSE\n");
+}
+
+void FAIMS::slotFAIMSCurtianInd(void)
+{
+    if(fui->chkCurtianIndEna->isChecked()) comms->SendCommand("SFMCCUR,FALSE\n");
+    else  comms->SendCommand("SFMCCUR,TRUE\n");
+}
+
+void FAIMS::slotFAIMSnegTune(void)
+{
+    if(fui->chkNegTune->isChecked()) comms->SendCommand("SFMTPOS,FALSE\n");
+    else  comms->SendCommand("SFMTPOS,TRUE\n");
 }
 

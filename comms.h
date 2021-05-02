@@ -16,6 +16,9 @@
 
 #include "settingsdialog.h"
 #include "ringbuffer.h"
+#include "properties.h"
+
+class Properties;
 
 enum ADCreadStates
   {
@@ -67,10 +70,14 @@ public:
     bool isConnected(void);
     QString getline(void);
     int CalculateCRC(QByteArray fdata);
+    void GetMIPSnameAndVersion(void);
     QString MIPSname;
     QByteArray readall(void);
+    int major, minor;               // MIPS version major.minor
     bool isMIPS(QString port);
     bool isAMPS(QString port, QString baud);
+    QTimer *reconnectTimer;
+    Properties *properties;
 
     QSerialPort *serial;
     QStatusBar *sb;
@@ -96,6 +103,7 @@ private slots:
     void disconnected(void);
     void slotAboutToClose(void);
     void slotKeepAlive(void);
+    void slotReconnect(void);
 };
 
 #endif // COMMS
