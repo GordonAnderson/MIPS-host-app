@@ -109,7 +109,7 @@ public slots:
     void WriteARBFLASH(void);
     void ARBupload(void);
     void SelectCP(QString fileName = "");
-    void CloseControlPanel(void);
+    void CloseControlPanel(QString);
     void slotScripting(void);
     void DisplayProperties(void);
     void slotLogStatusBarMessage(QString);
@@ -145,6 +145,7 @@ private:
     QString RepeatMessage;
     QList<Comms*> Systems;
     ScriptingConsole *scriptconsole;
+    QString NextCP;
 
 protected:
     bool eventFilter(QObject *obj, QEvent *event);

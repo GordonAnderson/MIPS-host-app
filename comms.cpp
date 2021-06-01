@@ -649,6 +649,8 @@ QString Comms::SendMess(QString message)
 // This function is called after a connection to MIPS is established. The function
 // reads the MIPS name, its version and optionally sets the MIPS time and date based
 // on version number.
+// The function also looks in the app dir for a file that contains initalization
+// commands and sends them to the MIPS system. The file name is "MIPS name".ini
 void Comms::GetMIPSnameAndVersion(void)
 {
     MIPSname = SendMessage("GNAME\n");
@@ -675,6 +677,32 @@ void Comms::GetMIPSnameAndVersion(void)
         SendCommand("STIME," + str + "\n");
         str = QDateTime::currentDateTime().date().toString("dd/MM/yyyy");
         SendCommand("SDATE," + str + "\n");
+    }
+    // Open the ini file in the app dir and send data to MIPS.
+#ifdef Q_OS_MAC
+    QString ext = ".app";
+#else
+    QString ext = ".exe";
+#endif
+    int i = QApplication::applicationFilePath().indexOf(QApplication::applicationName() + ext);
+    if(i == -1) return;
+    QString FileName = QApplication::applicationFilePath().left(i) + QApplication::applicationName() + ".ini";
+    QFile file(FileName);
+    if(file.open(QIODevice::ReadOnly|QIODevice::Text))
+    {
+        QTextStream stream(&file);
+        QString line;
+        do
+        {
+            line = stream.readLine();
+            qDebug() << line;
+            if(line.trimmed().startsWith("#")) continue;
+            if(line.trimmed() == "") continue;
+            // If here set the line to MIPS
+            SendCommand(line + "\n");
+        }while(!line.isNull());
+        file.close();
+        rb.clear();
     }
 }
 

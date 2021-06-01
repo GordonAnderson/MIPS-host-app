@@ -110,6 +110,7 @@ public:
     QString GenerateMuxSeq(QString Seq);
     bool    isTableMode(void);
     int     ConvertToCount(QString val);
+    float   CalculateTime(QString val);
     QStringList Split(QString str, QString del);
     QWidget     *p;
     QString     Title;

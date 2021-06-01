@@ -320,7 +320,7 @@
 //          has low threshold that will display OFF when gauge output is below limit.
 //      2.) Disable all input of DIO input channels
 //      3.) Allow DIO disable in control panel
-//      4.) Fixed but in run script button
+//      4.) Fixed bug in run script button
 //      5.) Fixed bug in restoring RF quad enable state
 //      6.) Added On exit script button
 // 1.81, Dec 6, 2020
@@ -339,9 +339,14 @@
 //      3.) Updated the FAIMS tab to read use the MIPS version to enable and
 //          disable options.
 //      4.) Added options for negative peak tune, and curtian supply options
-//
-// Planded updates:
-//      - Add ploting capability. Also support this through the Scripting system.
+//      5.) Added Tab control to custom control panels
+// 1.86, May 7, 2021
+//      1.) Added the load control panel button option to control panel code.
+//      2.) Added the read MIPSname.ini file in app dir to serial connection.
+// 1.87, May 29, 2021
+//      1.) Cleaned up a number of minor control panel bugs
+//      2.) Added improved folder searching for control panel files
+//      3.) Numbrous UI usability improvements.
 //
 #include "mips.h"
 #include "ui_mips.h"
@@ -386,21 +391,17 @@
 #include <QtNetwork/QTcpSocket>
 #include <QInputDialog>
 
-QString Version = "MIPS, Version 1.85 May 2, 2021";
+QString Version = "MIPS, Version 1.87 May 29, 2021";
 
 MIPS::MIPS(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MIPS)
 {
-
-//    qDebug() << "hi";
-//    float fval;
-//    std::sscanf("&S=,Range=002nA,-0.0378,nA", "%*16c%f",&fval);
-//    qDebug() << fval;
-
     ui->setupUi(this);
     ui->tabMIPS->setElideMode(Qt::ElideNone);
     ui->tabMIPS->setUsesScrollButtons(true);
+    ui->tabMIPS->tabBar()->setStyleSheet("QTabBar::tab:selected {color: white; background-color: rgb(90,90,255);}");
+
     // Make the dialog fixed size.
     this->setFixedSize(this->size());
 
@@ -428,6 +429,7 @@ MIPS::MIPS(QWidget *parent) :
     grid_deleteRequest = false;
     cp = NULL;
     cp_deleteRequest = false;
+    NextCP.clear();
     appPath = QApplication::applicationDirPath();
     pollTimer = new QTimer;
     settings = new SettingsDialog;
@@ -898,6 +900,7 @@ void MIPS::pollLoop(void)
       delete cp;
       cp = NULL;
       cp_deleteRequest = false;
+      if(!NextCP.isEmpty()) SelectCP(NextCP);
     }
     //if(cp != NULL) if(comms->isConnected()) cp->Update();
     if(cp != NULL) cp->Update();
@@ -1026,7 +1029,7 @@ void MIPS::MIPSconnect(void)
 void MIPS::MIPSsearch(void)
 {
     QMessageBox *msg = new QMessageBox();
-    msg->setText("Searching for MIPS system...");
+    msg->setText("Searching for MIPS system(s)...");
     msg->setStandardButtons(0);
     msg->show();
     QApplication::processEvents();
@@ -1558,9 +1561,11 @@ void MIPS::ARBupload(void)
     }
 }
 
-void MIPS::CloseControlPanel(void)
+void MIPS::CloseControlPanel(QString newPC)
 {
+    NextCP = newPC;
     cp_deleteRequest = true;
+    if(!newPC.isEmpty()) return;
     //this->setWindowState(Qt::WindowMaximized);
     this->setWindowState(Qt::WindowActive);
     ui->tabMIPS->setDisabled(false);
@@ -1577,7 +1582,7 @@ void MIPS::SelectCP(QString fileName)
     ControlPanel *c = new ControlPanel(0,fileName,Systems,properties);
     if(!c->LoadedConfig) return;
 //    c->show();
-    connect(c, SIGNAL(DialogClosed()), this, SLOT(CloseControlPanel()));
+    connect(c, SIGNAL(DialogClosed(QString)), this, SLOT(CloseControlPanel(QString)));
     c->Update();
     this->setWindowState(Qt::WindowMinimized);
     cp = c;

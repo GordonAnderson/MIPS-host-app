@@ -127,7 +127,7 @@ RESOURCES += \
 
 #QMAKE_LFLAGS_WINDOWS = /SUBSYSTEM:WINDOWS,5.01
 #QMAKE_CXXFLAGS *= "-Xpreprocessor -fopenmp"
-QMAKE_MAC_SDK = macosx10.14
+QMAKE_MAC_SDK = macosx10.12
 #QMAKE_MAC_SDK = macosx
 #!host_build:QMAKE_MAC_SDK = macosx
 

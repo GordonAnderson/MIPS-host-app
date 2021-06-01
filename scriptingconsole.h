@@ -58,6 +58,8 @@ public:
     Properties       *properties;
     QString          ScriptText;
     bool             CallOnUpdate;
+    bool             CallOnStart;
+    bool             busy;
 private:
     QScriptValue     mips;
     QPushButton      *pbButton;

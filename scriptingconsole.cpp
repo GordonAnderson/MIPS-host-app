@@ -136,7 +136,10 @@ ScriptButton::ScriptButton(QWidget *parent, QString name, QString ScriptFile, in
     sb = statusbar;
     engine = NULL;
     CallOnUpdate = false;
+    CallOnStart = false;
     ScriptText.clear();
+    busy = false;
+    //engine = new QScriptEngine(p);
 }
 
 ScriptButton::~ScriptButton()
@@ -149,16 +152,17 @@ ScriptButton::~ScriptButton()
 
 void ScriptButton::Show(void)
 {
+    QWidget          *parent;
+
     pbButton = new QPushButton(Title,p);
     pbButton->setGeometry(X,Y,150,32);
     pbButton->setAutoDefault(false);
     connect(pbButton,SIGNAL(pressed()),this,SLOT(pbButtonPressed()),Qt::QueuedConnection);
     engine = new QScriptEngine(this);
     engine->setProcessEventsInterval(100);
-    if(p->parentWidget()->parentWidget() != NULL)
-       mips = engine->newQObject(p->parentWidget()->parentWidget());
-    else
-       mips = engine->newQObject(p->parentWidget());
+    parent = p->parentWidget();
+    while(parent->parentWidget() != NULL) parent = parent->parentWidget();
+    mips = engine->newQObject(parent);
     engine->globalObject().setProperty("mips",mips);
 }
 
@@ -172,7 +176,6 @@ void ScriptButton::pbButtonPressed(void)
 
 void ScriptButton::ButtonPressed(bool AlwaysLoad)
 {
-    static bool busy = false;
     QMessageBox msgBox;
 
     pbButton->setDown(false);
@@ -200,6 +203,7 @@ void ScriptButton::ButtonPressed(bool AlwaysLoad)
         QFile file(FileName);
         if(file.open(QIODevice::ReadOnly|QIODevice::Text))
         {
+            if(properties != NULL) properties->Log("Script loaded: " + FileName);
             QTextStream stream(&file);
             ScriptText = stream.readAll();
             file.close();
@@ -213,7 +217,6 @@ void ScriptButton::ButtonPressed(bool AlwaysLoad)
     }
     if(!ScriptText.isEmpty())
     {
-        if(properties != NULL) properties->Log("Script loaded: " + FileName);
         busy = true;
         if(AlwaysLoad) QApplication::setOverrideCursor(Qt::WaitCursor);
         QApplication::processEvents();
@@ -238,7 +241,12 @@ void ScriptButton::ButtonPressed(bool AlwaysLoad)
 
 QString ScriptButton::ProcessCommand(QString cmd)
 {
-    if(Title == cmd.trimmed())
+    QString title;
+
+    title.clear();
+    if(p->objectName() != "") title = p->objectName() + ".";
+    title += Title;
+    if(title == cmd.trimmed())
     {
         ButtonPressed(false);
         return("");
@@ -249,5 +257,15 @@ QString ScriptButton::ProcessCommand(QString cmd)
 void ScriptButton::Update(void)
 {
     if(CallOnUpdate) ButtonPressed(false);
+    if(CallOnStart)
+    {
+        QMessageBox *msg = new QMessageBox();
+        msg->setText("Configuring system, standby...");
+        msg->setStandardButtons(0);
+        msg->show();
+        CallOnStart = false;
+        ButtonPressed(false);
+        msg->hide();
+    }
 }
 

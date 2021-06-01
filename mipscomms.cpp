@@ -63,6 +63,7 @@ void MIPScomms::readData2Console(void)
          {
              data = Systems.at(i)->readall();
              ui->txtTerm->insertPlainText(QString(data));
+             ui->txtTerm->ensureCursorVisible();
          }
     }
 }

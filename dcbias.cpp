@@ -408,7 +408,7 @@ QString DCBchannel::Report(void)
     if(p->objectName() != "") title = p->objectName() + ".";
     title += Title;
     if(isShutdown) res = title + "," + activeVoltage + "," + Vrb->text();
-    else res = Title + "," + Vsp->text() + "," + Vrb->text();
+    else res = title + "," + Vsp->text() + "," + Vrb->text();
     return(res);
 }
 

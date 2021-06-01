@@ -146,21 +146,21 @@ void FAIMS::Update(void)
     if(res == "FALSE") fui->chkFMenable->setChecked(false);
     if(fui->chkCurtianEna->isEnabled())
     {
-        res = comms->SendMess("GFMENA\n");
-        if(res == "TRUE") fui->chkCurtianEna->setChecked(true);
-        if(res == "FALSE") fui->chkCurtianEna->setChecked(false);
+        res = comms->SendMess("GHVSTATUS,1\n");
+        if(res == "ON") fui->chkCurtianEna->setChecked(true);
+        if(res == "OFF") fui->chkCurtianEna->setChecked(false);
     }
     if(fui->chkCurtianIndEna->isEnabled())
     {
-        res = comms->SendMess("GHVSTATUS,1\n");
-        if(res == "ON") fui->chkCurtianIndEna->setChecked(false);
-        if(res == "OFF") fui->chkCurtianIndEna->setChecked(true);
+        res = comms->SendMess("GFMCCUR\n");
+        if(res == "TRUE") fui->chkCurtianIndEna->setChecked(false);
+        if(res == "FALSE") fui->chkCurtianIndEna->setChecked(true);
     }
     if(fui->chkNegTune->isEnabled())
     {
         res = comms->SendMess("GFMTPOS\n");
-        if(res == "TRUE") fui->chkCurtianIndEna->setChecked(false);
-        if(res == "FALSE") fui->chkCurtianIndEna->setChecked(true);
+        if(res == "TRUE") fui->chkNegTune->setChecked(false);
+        if(res == "FALSE") fui->chkNegTune->setChecked(true);
     }
     // Read the lock mode and update the UI
     res = comms->SendMess("GFMLOCK\n");
@@ -730,8 +730,8 @@ void FAIMS::slotFAIMSautoTuneAbort(void)
 
 void FAIMS::slotFAIMSCurtianEna(void)
 {
-    if(fui->chkCurtianEna->isChecked()) comms->SendCommand("SHVENA,1,TRUE\n");
-    else  comms->SendCommand("SHVENA,1,FALSE\n");
+    if(fui->chkCurtianEna->isChecked()) comms->SendCommand("SHVENA,1\n");
+    else  comms->SendCommand("SHVDIS,1\n");
 }
 
 void FAIMS::slotFAIMSCurtianInd(void)

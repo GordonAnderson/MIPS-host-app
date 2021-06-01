@@ -888,12 +888,30 @@ QStringList TimingGenerator::Split(QString str, QString del)
     if(!s.isEmpty()) reslist.append(s);
     return(reslist);
 }
+int TimingGenerator::ConvertToCount(QString val)
+{
+    bool  ok;
+    float clock  = 0;
+    float result;
 
-int   TimingGenerator::ConvertToCount(QString val)
+    result = CalculateTime(val);
+    if(ui->chkTimeMode->isChecked())
+    {
+        clock = ui->comboClockSource->currentText().toInt(&ok);
+        if(ok) result = result * (clock/1000.0);
+        else
+        {
+            clock = ui->leExtClkFreq->text().toInt(&ok);
+            if(ok) result = result * (clock/1000.0);
+        }
+    }
+    return result;
+}
+
+float TimingGenerator::CalculateTime(QString val)
 {
     QStringList reslist;
     bool  ok;
-    float clock  = 0;
     float result = 0;
     float j      = 0;
     int   sign   = 1;
@@ -902,23 +920,7 @@ int   TimingGenerator::ConvertToCount(QString val)
     for(int i=0;i<reslist.count();i++)
     {
         j = reslist[i].toFloat(&ok);
-        if(ok)
-        {
-            result += sign * j;
-            // If we are in the time mode (mS units) and the clock is defined then convert result
-            // to clock cycles. Clock is in Hz.
-            // result = result * clock/1000
-            if(ui->chkTimeMode->isChecked())
-            {
-                clock = ui->comboClockSource->currentText().toInt(&ok);
-                if(ok) result = result * (clock/1000.0);
-                else
-                {
-                    clock = ui->leExtClkFreq->text().toInt(&ok);
-                    if(ok) result = result * (clock/1000.0);
-                }
-            }
-        }
+        if(ok) result += sign * j;
         else if(reslist[i] == "+") sign =  1;
         else if(reslist[i] == "-") sign = -1;
         else
@@ -929,23 +931,22 @@ int   TimingGenerator::ConvertToCount(QString val)
                 evtName.replace(" ", "");
                 if(evtName == reslist[i])
                 {
-                    result += sign * ConvertToCount(evt->Start);
+                    result += sign * CalculateTime(evt->Start);
                     break;
                 }
                 else if((evtName + ".Start") == reslist[i])
                 {
-                    result += sign * ConvertToCount(evt->Start);
+                    result += sign * CalculateTime(evt->Start);
                     break;
                 }
                 else if((evtName + ".Width") == reslist[i])
                 {
-                    result += sign * ConvertToCount(evt->Width);
+                    result += sign * CalculateTime(evt->Width);
                     break;
                 }
             }
         }
     }
-//    qDebug() << val << "," << result;
     return(result);
 }
 
@@ -1086,38 +1087,38 @@ void  TimingGenerator::slotGenerate(void)
         evt->WidthT = ConvertToCount(evt->Width);
     }
     int FrameStartT = ConvertToCount(ui->leFrameStart->text());
-    for(int i=0;i <= maxCount;i++)
+    for(int i=0;i <= abs(maxCount);i++)
     {
         timeFlag = false;
         // Search for event at this clock cycle
         foreach(Event *evt, Events)
         {
             if(evt->Channel.isEmpty()) continue;
-            if(evt->StartT == i)
+            if((int)abs(evt->StartT) == i)
             {
-                if(!timeFlag) { table += "," + QString::number(i); timeFlag=true; }
+                if(!timeFlag) { table += "," + QString::number((int)evt->StartT); timeFlag=true; }
                 table += ":" + evt->Channel + ":" + QString::number(evt->Value);
             }
-            if((evt->StartT + evt->WidthT) == i)
+            if((int)abs(evt->StartT + evt->WidthT) == i)
             {
-                if(evt->WidthT > 0)
+                if(abs(evt->WidthT) > 0)
                 {
-                   if(!timeFlag) { table += "," + QString::number(i); timeFlag=true; }
+                   if(!timeFlag) { table += "," + QString::number((int)(evt->StartT + evt->WidthT)); timeFlag=true; }
                    table += ":" + evt->Channel + ":" + QString::number(evt->ValueOff);
                 }
             }
         }
-        if(FrameStartT == i)
+        if((int)abs(FrameStartT) == i)
         {
             if(ui->comboEnable->currentText() != "")
             {
-                if(!timeFlag) { table += "," + QString::number(i); timeFlag=true; }
+                if(!timeFlag) { table += "," + QString::number((int)FrameStartT); timeFlag=true; }
                 table += ":" + ui->comboEnable->currentText() + ":1";
             }
         }
-        if(maxCount == i)
+        if(abs(maxCount) == i)
         {
-            if(!timeFlag) { table += "," + QString::number(i); timeFlag=true; }
+            if(!timeFlag) { table += "," + QString::number((int)maxCount); timeFlag=true; }
             if(ui->comboEnable->currentText() != "")
             {
                table += ":" +  ui->comboEnable->currentText() + ":0";

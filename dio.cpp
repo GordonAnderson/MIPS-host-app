@@ -328,8 +328,8 @@ bool DIOchannel::SetValues(QString strVals)
     if(resList.count() < 2) return false;
     if(resList[1].contains("1")) DIO->setChecked(true);
     else DIO->setChecked(false);
-    if(resList[1].contains("1")) DIO->stateChanged(1);
-    else DIO->stateChanged(0);
+    if(resList[1].contains("1")) emit DIO->stateChanged(1);
+    else emit DIO->stateChanged(0);
     return true;
 }
 
@@ -352,8 +352,10 @@ QString DIOchannel::ProcessCommand(QString cmd)
        if(resList[1] == "1") DIO->setChecked(true);
        else if(resList[1] == "0") DIO->setChecked(false);
        else return "?";
-       if(resList[1] == "1") DIO->stateChanged(1);
-       else  DIO->stateChanged(0);
+       //if(resList[1] == "1") emit DIO->stateChanged(1);
+       //else  emit DIO->stateChanged(0);
+       if(resList[1] == "1") DIOChange(1);
+       else DIOChange(0);
        return "";
     }
     return "?";
